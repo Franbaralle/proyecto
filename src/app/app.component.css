@@ -1,0 +1,58 @@
+:host {
+	display: block;
+	font-family: Arial, sans-serif;
+}
+
+.topbar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1rem;
+	border-bottom: 1px solid #ddd;
+}
+
+.topbar h1 {
+	margin: 0;
+	font-size: 1.2rem;
+}
+
+.topbar-right {
+	display: flex;
+	align-items: center;
+	gap: 0.9rem;
+}
+
+nav {
+	display: flex;
+	gap: 1rem;
+}
+
+nav a {
+	text-decoration: none;
+	color: #333;
+}
+
+nav a.active {
+	font-weight: bold;
+}
+
+.logout-btn {
+	padding: 0.4rem 0.75rem;
+	border: 1px solid #2f4f4f;
+	border-radius: 6px;
+	background: #fff;
+	color: #2f4f4f;
+	cursor: pointer;
+}
+
+.session-email {
+	font-size: 0.85rem;
+	padding: 0.25rem 0.5rem;
+	border-radius: 999px;
+	background: #f3f3f3;
+	color: #444;
+}
+
+.content {
+	padding: 1rem;
+}

@@ -1,0 +1,34 @@
+<section class="inventario-container">
+	<h2>INVENTARIO DE DEPRESIÓN DE BECK (BDI-2)</h2>
+
+	<p class="instructions">{{ instructions }}</p>
+
+	<article class="group" *ngFor="let group of groups; let groupIndex = index">
+		<div class="group-header">
+			<h3>{{ group.title }}</h3>
+		</div>
+
+		<div class="option-row" *ngFor="let option of group.options; let optionIndex = index">
+			<label class="option-label" [for]="'g' + groupIndex + '-o' + optionIndex">
+				{{ option.text }}
+			</label>
+			<div class="option-mark" *ngIf="!isDiegoSession">
+				<input
+					[id]="'g' + groupIndex + '-o' + optionIndex"
+					type="radio"
+					[name]="'group-' + groupIndex"
+					[checked]="group.selectedOption === optionIndex"
+					(change)="selectOption(groupIndex, optionIndex)"
+				/>
+			</div>
+		</div>
+	</article>
+
+	<div class="submit-section" *ngIf="!isDiegoSession">
+		<button type="button" class="submit-btn" (click)="submitResult()" [disabled]="!canSubmit">
+			{{ isSubmitting ? 'Guardando...' : 'Guardar Resultados' }}
+		</button>
+		<p class="submit-success" *ngIf="submitMessage">{{ submitMessage }}</p>
+		<p class="submit-error" *ngIf="submitError">{{ submitError }}</p>
+	</div>
+</section>

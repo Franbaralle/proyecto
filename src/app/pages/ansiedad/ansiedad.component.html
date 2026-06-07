@@ -1,0 +1,46 @@
+<section class="ansiedad-container">
+  <h2>INVENTARIO DE ANSIEDAD DE BECK (BAI)</h2>
+
+  <p class="instructions">
+    Instrucciones: A continuación se presenta una lista de síntomas comunes de la ansiedad.
+    Por favor, lea cada ítem con atención. Indique cuánto le ha molestado cada síntoma
+    durante la última semana, incluyendo hoy.
+  </p>
+
+  <div class="bai-table-wrapper">
+    <table class="bai-table">
+      <thead>
+        <tr>
+          <th class="th-sintoma">Síntoma</th>
+          <th class="th-opcion" *ngFor="let label of opcionLabels">{{ label }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class="bai-row"
+          *ngFor="let item of items; let i = index"
+          [class.bai-row--answered]="baiData.responses[i] >= 0"
+        >
+          <td class="td-sintoma">{{ item }}</td>
+          <td class="td-opcion" *ngFor="let j of opciones">
+            <input
+              type="radio"
+              [name]="'item-' + i"
+              [value]="j"
+              [checked]="baiData.responses[i] === j"
+              (change)="selectOption(i, j)"
+            />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="submit-section" *ngIf="!isAuthorized">
+    <button type="button" class="submit-btn" (click)="submitResult()" [disabled]="!canSubmit">
+      {{ isSubmitting ? 'Guardando...' : 'Guardar Resultados' }}
+    </button>
+    <p class="submit-success" *ngIf="submitMessage">{{ submitMessage }}</p>
+    <p class="submit-error" *ngIf="submitError">{{ submitError }}</p>
+  </div>
+</section>

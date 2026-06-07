@@ -1,0 +1,82 @@
+<section class="auth-container">
+
+  <!-- ── FORMULARIO ── -->
+  <ng-container *ngIf="!registroExitoso">
+    <h2>Registro de psicólogo/a</h2>
+    <p>Complete sus datos para crear su cuenta profesional. Todos los campos son obligatorios (*).</p>
+
+    <form (ngSubmit)="submit()" class="auth-form">
+
+      <label for="nombre">Nombre completo *</label>
+      <input
+        id="nombre"
+        name="nombre"
+        type="text"
+        [(ngModel)]="nombre"
+        placeholder="Ej: Diego Castillo"
+      />
+
+      <label for="email">Email profesional *</label>
+      <input
+        id="email"
+        name="email"
+        type="email"
+        [(ngModel)]="email"
+        placeholder="tu@email.com"
+      />
+
+      <label for="matricula">Matrícula profesional *</label>
+      <input
+        id="matricula"
+        name="matricula"
+        type="text"
+        [(ngModel)]="matricula"
+        placeholder="Ej: MP-12345"
+      />
+
+      <label for="password">Contraseña * (mínimo 6 caracteres)</label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        [(ngModel)]="password"
+        placeholder="••••••"
+      />
+
+      <label for="confirmPassword">Confirmar contraseña *</label>
+      <input
+        id="confirmPassword"
+        name="confirmPassword"
+        type="password"
+        [(ngModel)]="confirmPassword"
+        placeholder="••••••"
+      />
+
+      <p class="auth-error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+      <button type="submit" [disabled]="isLoading">
+        {{ isLoading ? 'Creando cuenta...' : 'Crear cuenta' }}
+      </button>
+
+    </form>
+
+    <div class="auth-links">
+      ¿Ya tenés cuenta? <a routerLink="/acceso-reportes">Volver al inicio</a>
+    </div>
+  </ng-container>
+
+  <!-- ── RESULTADO EXITOSO ── -->
+  <ng-container *ngIf="registroExitoso">
+    <h2>¡Cuenta creada con éxito!</h2>
+    <p>Su cuenta fue registrada correctamente. Guarde el siguiente código: sus pacientes lo necesitarán para registrarse.</p>
+
+    <div class="codigo-resultado">
+      <span class="codigo-label">Su código de acceso</span>
+      <span class="codigo-valor">{{ codigoGenerado }}</span>
+      <span class="codigo-hint">Comparta este código únicamente con sus pacientes.</span>
+    </div>
+
+    <button class="btn-ir-reportes" (click)="irAReportes()">Ir a mis reportes →</button>
+  </ng-container>
+
+</section>

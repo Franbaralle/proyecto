@@ -1,0 +1,48 @@
+<section class="access-container">
+  <h2>Acceso a la aplicación</h2>
+
+  <div class="access-sections">
+
+    <div class="access-section">
+      <h3>Soy psicólogo/a</h3>
+      <p>Ingrese sus credenciales para acceder al panel de reportes.</p>
+      <form (ngSubmit)="submit()" class="access-form">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          [(ngModel)]="email"
+          placeholder="tu@email.com"
+        />
+        <label for="psi-password">Contraseña</label>
+        <input
+          id="psi-password"
+          name="psi-password"
+          type="password"
+          [(ngModel)]="password"
+          placeholder="••••••"
+        />
+        <button type="submit" [disabled]="isLoading">
+          {{ isLoading ? 'Ingresando...' : 'Ingresar' }}
+        </button>
+      </form>
+      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+      <p class="registro-psicologo-link">
+        ¿Primera vez? <a routerLink="/registro-psicologo">Crear cuenta de psicólogo/a</a>
+      </p>
+    </div>
+
+    <div class="access-divider"></div>
+
+    <div class="access-section">
+      <h3>Soy paciente</h3>
+      <p>Acceda con su cuenta o regístrese por primera vez.</p>
+      <div class="paciente-links">
+        <a routerLink="/login" class="btn-paciente">Iniciar sesión</a>
+        <a routerLink="/registro" class="btn-paciente btn-paciente-secondary">Registrarse</a>
+      </div>
+    </div>
+
+  </div>
+</section>

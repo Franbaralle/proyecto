@@ -1,0 +1,722 @@
+.reporte-container {
+	max-width: 780px;
+	margin: 0 auto;
+	padding: 1rem;
+}
+
+h2 {
+	margin-bottom: 1rem;
+}
+
+.codigo-panel {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+	padding: 0.75rem 1rem;
+	background: #f0f4f0;
+	border: 1px solid #b2c8b2;
+	border-radius: 8px;
+	margin-bottom: 1rem;
+	font-size: 0.9rem;
+	color: #333;
+}
+
+.codigo-acceso {
+	font-size: 1.1rem;
+	letter-spacing: 0.12em;
+	color: #2f4f4f;
+	background: #fff;
+	border: 1px solid #9cb89c;
+	border-radius: 5px;
+	padding: 0.15rem 0.55rem;
+}
+
+.codigo-panel small {
+	color: #777;
+	font-size: 0.82rem;
+}
+
+.patient-mgmt {
+	margin-top: 1.5rem;
+	padding-top: 1rem;
+	border-top: 1px solid #ddd;
+}
+
+.patient-mgmt h3 {
+	margin: 0 0 0.75rem;
+}
+
+.mgmt-no-profile {
+	color: #555;
+	font-size: 0.93rem;
+	line-height: 1.5;
+}
+
+.mgmt-checklist p {
+	margin: 0 0 0.5rem;
+}
+
+.tests-checklist {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 0.75rem;
+	display: grid;
+	gap: 0.4rem;
+}
+
+.tests-checklist label {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	cursor: pointer;
+	font-size: 0.93rem;
+}
+
+.mgmt-actions {
+	margin-top: 0.5rem;
+}
+
+.search-panel,
+.stored-result,
+.direct-mgmt-panel {
+	margin-top: 1.25rem;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 1rem;
+}
+
+.direct-mgmt-desc {
+	color: #555;
+	font-size: 0.9rem;
+	margin: 0 0 0.75rem;
+}
+
+.btn-volver-direct {
+	margin-left: 0.75rem;
+	font-size: 0.82rem;
+	padding: 0.2rem 0.5rem;
+	background: transparent;
+	border: 1px solid #aaa;
+	border-radius: 4px;
+	cursor: pointer;
+	color: #444;
+}
+
+.btn-volver-direct:hover {
+	background: #f0f0f0;
+}
+
+.search-row {
+	display: flex;
+	gap: 0.6rem;
+	align-items: center;
+}
+
+.search-row input {
+	flex: 1;
+	padding: 0.55rem 0.65rem;
+	border: 1px solid #ccc;
+	border-radius: 6px;
+}
+
+.search-row button {
+	padding: 0.55rem 1rem;
+	border: 1px solid #2f4f4f;
+	border-radius: 6px;
+	background: #2f4f4f;
+	color: #fff;
+	cursor: pointer;
+}
+
+.search-row button:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.results-list {
+	list-style: none;
+	padding: 0;
+	margin: 0.9rem 0 0;
+	display: grid;
+	gap: 0.5rem;
+}
+
+.results-list li {
+	border: 1px solid #e3e3e3;
+	border-radius: 6px;
+	padding: 0.6rem;
+	cursor: pointer;
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+}
+
+.results-list li:hover {
+	background: #f7f7f7;
+}
+
+.results-list span {
+	font-size: 0.9rem;
+	color: #555;
+}
+
+.result-grid {
+	display: grid;
+	grid-template-columns: 220px 1fr;
+	gap: 0.65rem 1rem;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 1rem;
+}
+
+.result-grid span {
+	font-weight: 600;
+}
+
+.result-grid strong {
+	font-weight: 500;
+}
+
+.analysis {
+	margin-top: 1rem;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 1rem;
+}
+
+.summary-box {
+	margin-top: 1rem;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 1rem;
+}
+
+.summary-box h3 {
+	margin: 0 0 0.5rem;
+}
+
+.summary-box p {
+	margin: 0;
+	line-height: 1.4;
+}
+
+.summary-box ul {
+	margin: 0.65rem 0 0;
+	padding-left: 1rem;
+	display: grid;
+	gap: 0.35rem;
+}
+
+.charts-grid {
+	margin-top: 1rem;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 1rem;
+}
+
+.chart-card {
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 1rem;
+	background: #fff;
+}
+
+.chart-card h3 {
+	margin: 0 0 0.75rem;
+}
+
+.chart-card canvas {
+	width: 100% !important;
+	height: 420px !important;
+}
+
+.analysis h3 {
+	margin: 0 0 0.75rem;
+}
+
+.analysis p {
+	margin: 0;
+	line-height: 1.45;
+}
+
+.analysis-block {
+	display: flex;
+	gap: 0.75rem;
+	align-items: flex-start;
+	padding: 0.65rem 0;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.analysis-block:last-child {
+	border-bottom: none;
+}
+
+.analysis-icon {
+	font-size: 1.25rem;
+	line-height: 1.3;
+	flex-shrink: 0;
+	width: 1.75rem;
+	text-align: center;
+}
+
+.analysis-label {
+	margin: 0 0 0.3rem;
+	font-size: 0.82rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #666;
+}
+
+.items-group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+	align-items: center;
+	margin-top: 0.35rem;
+}
+
+.items-group-label {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: #444;
+	margin-right: 0.2rem;
+}
+
+.item-chip {
+	font-size: 0.78rem;
+	padding: 0.2rem 0.55rem;
+	border-radius: 999px;
+	font-weight: 500;
+}
+
+.chip-mejor {
+	background: #e6f9ee;
+	color: #1a7a3c;
+	border: 1px solid #b2e6c5;
+}
+
+.chip-peor {
+	background: #fdecea;
+	color: #c0392b;
+	border: 1px solid #f5b7b1;
+}
+
+.triangulacion-list {
+	margin: 0.3rem 0 0;
+	padding-left: 1.2rem;
+	display: grid;
+	gap: 0.3rem;
+	font-size: 0.9rem;
+}
+
+.triangulacion-evidencia {
+	color: #666;
+	font-size: 0.82rem;
+}
+
+.recomendacion {
+	border-radius: 6px;
+	padding: 0.6rem 0.75rem;
+	background: #f0f7ff;
+	border-bottom: none !important;
+}
+
+.recomendacion.riesgo-alto {
+	background: #fff5f5;
+}
+
+.recomendacion .analysis-label {
+	color: #2c5f9c;
+}
+
+.recomendacion.riesgo-alto .analysis-label {
+	color: #c0392b;
+}
+
+.analysis-reporte {
+	background: #fafafa;
+	border-color: #c8d8e8;
+}
+
+.respuestas {
+	margin-top: 1rem;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 1rem;
+}
+
+.respuestas h3 {
+	margin: 0 0 0.75rem;
+}
+
+.respuestas ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: grid;
+	gap: 0.5rem;
+}
+
+.respuestas li {
+	padding: 0.55rem;
+	border-radius: 6px;
+	background: #f8f8f8;
+}
+
+.respuestas p {
+	margin: 0.25rem 0 0;
+}
+
+@media (max-width: 680px) {
+	.result-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.search-row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.charts-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.reevaluation-panel {
+	margin-top: 1.5rem;
+	padding-top: 1rem;
+	border-top: 1px solid #ddd;
+}
+
+.btn-reeval {
+	background: #e65c00;
+	color: #fff;
+	border: none;
+	padding: 0.5rem 1.2rem;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.95rem;
+}
+
+.btn-reeval:hover:not(:disabled) {
+	background: #c44f00;
+}
+
+.btn-reeval:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.btn-reeval-cancel {
+	background: transparent;
+	color: #555;
+	border: 1px solid #bbb;
+	padding: 0.5rem 1.2rem;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.95rem;
+	margin-left: 0.5rem;
+}
+
+.reeval-form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.reeval-form textarea {
+	width: 100%;
+	padding: 0.5rem;
+	border: 1px solid #bbb;
+	border-radius: 6px;
+	font-size: 0.95rem;
+	resize: vertical;
+}
+
+.reeval-actions {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.reeval-success {
+	color: #2e7d32;
+	font-weight: 600;
+	margin-bottom: 0.5rem;
+}
+
+/* ---- Historial de reevaluaciones ---- */
+.my-permissions-panel {
+	margin-top: 2rem;
+	padding: 1.25rem 1.5rem;
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 10px;
+}
+
+.my-permissions-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1rem;
+}
+
+.my-permissions-header h3 {
+	margin: 0;
+	font-size: 1rem;
+	color: #1a1a2e;
+}
+
+.btn-refresh {
+	background: transparent;
+	border: 1px solid #bbb;
+	padding: 0.3rem 0.9rem;
+	border-radius: 6px;
+	font-size: 0.85rem;
+	cursor: pointer;
+	color: #555;
+}
+
+.btn-refresh:hover:not(:disabled) {
+	background: #f0f0f0;
+}
+
+.btn-refresh:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.permissions-empty {
+	color: #888;
+	font-size: 0.9rem;
+}
+
+.permissions-table-wrapper {
+	overflow-x: auto;
+}
+
+.permissions-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.88rem;
+}
+
+.permissions-table th {
+	text-align: left;
+	padding: 0.5rem 0.75rem;
+	background: #f5f5f5;
+	border-bottom: 2px solid #ddd;
+	color: #333;
+	white-space: nowrap;
+}
+
+.permissions-table td {
+	padding: 0.5rem 0.75rem;
+	border-bottom: 1px solid #eee;
+	vertical-align: top;
+}
+
+.perm-pending td { background: #fffbf0; }
+.perm-consumed td { background: #fafafa; color: #999; }
+
+.perm-badge {
+	display: inline-block;
+	padding: 0.2rem 0.55rem;
+	border-radius: 10px;
+	font-size: 0.8rem;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.badge-pending  { background: #fff3cd; color: #856404; }
+.badge-consumed { background: #d1fae5; color: #065f46; }
+
+.perm-reason { max-width: 260px; word-break: break-word; }
+
+.respuestas-tabla-wrapper {
+	overflow-x: auto;
+	margin-top: 0.5rem;
+}
+
+.respuestas-tabla {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.875rem;
+}
+
+.respuestas-tabla th,
+.respuestas-tabla td {
+	border: 1px solid #ddd;
+	padding: 0.5rem 0.75rem;
+	vertical-align: top;
+	text-align: left;
+}
+
+.respuestas-tabla thead th {
+	background: #f5f5f5;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.respuestas-tabla thead th small {
+	display: block;
+	font-weight: 400;
+	color: #666;
+}
+
+.respuestas-tabla td.seccion-nombre {
+	font-weight: 600;
+	white-space: nowrap;
+	background: #fafafa;
+}
+
+.respuestas-tabla td.celda-vigente {
+	background: #f0f7ff;
+}
+
+/* ── Sub-header de test individual ── */
+.detail-test-subheader {
+	margin-top: 1.25rem;
+	padding-bottom: 0.4rem;
+	border-bottom: 2px solid #e0e0e0;
+}
+
+.detail-test-subheader h4 {
+	margin: 0;
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: #555;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+/* ── Cabecera del paciente ── */
+.patient-view-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin-bottom: 1rem;
+}
+
+.patient-view-header h3 {
+	margin: 0;
+	font-size: 1.15rem;
+}
+
+/* ── Tabla de rondas ── */
+.rounds-section {
+	margin-bottom: 1rem;
+}
+
+.rounds-section h3 {
+	margin: 0 0 0.6rem;
+}
+
+.rounds-table-wrapper {
+	overflow-x: auto;
+}
+
+.rounds-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.9rem;
+}
+
+.rounds-table thead tr {
+	background: #2f4f4f;
+	color: #fff;
+}
+
+.rounds-table th,
+.rounds-table td {
+	border: 1px solid #ddd;
+	padding: 0.5rem 0.75rem;
+	text-align: left;
+	vertical-align: middle;
+}
+
+.rounds-table th.th-round {
+	width: 90px;
+}
+
+.rounds-table tbody tr:nth-child(even) {
+	background: #f9fafa;
+}
+
+.rounds-table tbody tr.round-selected {
+	background: #e8f3ee;
+}
+
+.btn-round-detail {
+	background: transparent;
+	border: 1px solid #aaa;
+	border-radius: 5px;
+	padding: 0.25rem 0.6rem;
+	font-size: 0.85rem;
+	cursor: pointer;
+	color: #333;
+	white-space: nowrap;
+}
+
+.btn-round-detail:hover {
+	background: #f0f0f0;
+}
+
+.btn-round-detail--active {
+	background: #2f4f4f;
+	color: #fff;
+	border-color: #2f4f4f;
+}
+
+.btn-round-detail--active:hover {
+	background: #3d6363;
+}
+
+.round-no-result {
+	color: #aaa;
+	font-size: 0.9rem;
+}
+
+/* ── Cabecera de detalle ── */
+.detail-section-header {
+	margin-top: 1.25rem;
+	padding: 0.6rem 1rem;
+	background: #f0f4f0;
+	border: 1px solid #b2c8b2;
+	border-radius: 8px;
+	margin-bottom: 0.75rem;
+}
+
+.detail-section-header h3 {
+	margin: 0;
+	font-size: 1rem;
+	color: #2f4f4f;
+}
+
+/* ── Checklist de tests en reevaluación ── */
+.reeval-checklist {
+	list-style: none;
+	padding: 0;
+	margin: 0.4rem 0 0.8rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+}
+
+.reeval-checklist li label {
+	display: flex;
+	align-items: center;
+	gap: 0.55rem;
+	font-size: 0.95rem;
+	cursor: pointer;
+}
+
+.reeval-checklist li input[type="checkbox"] {
+	width: 1.1rem;
+	height: 1.1rem;
+	cursor: pointer;
+	accent-color: #4a90d9;
+}

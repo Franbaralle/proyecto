@@ -1,0 +1,267 @@
+================================================================================
+  PROYECTO: INVENTARIO DE DEPRESIÓN DE BECK (BDI-II)
+  RESUMEN DE TRABAJO — 13 de marzo de 2026  (v2 — ACTUALIZADO)
+================================================================================
+
+STACK TECNOLÓGICO
+-----------------
+- Angular 16 (scaffolded con Angular CLI 16 debido a Node.js 16.x)
+- Firebase: Authentication (email/password) + Firestore
+- Chart.js (NgChartsModule) — gráfico de línea
+- Angular Reactive Forms / Template-driven Forms
+
+
+────────────────────────────────────────────────────────────────────────────────
+1. CAMBIOS EN LA INTERFAZ DE REPORTES
+────────────────────────────────────────────────────────────────────────────────
+
+✅ Se eliminó el gráfico de torta (Pie Chart) de:
+   - reportes.component.ts  → se quitaron pieChartData, pieChartOptions y la
+                               lógica de distribución en rebuildCharts()
+   - reportes.component.html → se eliminó el bloque <canvas> del pie chart
+
+✅ Se amplió el gráfico de línea:
+   - CSS: grid-template-columns cambiado a 1fr (una sola columna)
+   - CSS: canvas height → 420px !important
+   - TS:  maintainAspectRatio: false
+   - TS:  scales con suggestedMax: 63 (puntaje máximo del BDI-II)
+
+
+────────────────────────────────────────────────────────────────────────────────
+2. SISTEMA DE AUTENTICACIÓN DUAL
+────────────────────────────────────────────────────────────────────────────────
+
+Se implementó un sistema de doble autenticación:
+
+  a) PSICÓLOGOS — sistema unificado Firebase Auth:
+     - ReportesAuthService → sessionStorage (guarda el email tras login exitoso)
+     - PatientAuthService → Firebase Auth (valida email + contraseña)
+     - Login en /acceso-reportes con email + contraseña (Firebase Auth real)
+     - isAuthorized: cualquier psicólogo con sesión activa
+     - isDiegoSession: true solo para diegoacastillopsi@gmail.com
+
+  b) PACIENTES — sistema Firebase Auth:
+     - PatientAuthService  →  src/app/services/patient-auth.service.ts
+       · register(email, password)
+       · login(email, password)
+       · logout()
+       · waitForInit()  ← Promise que espera el primer onAuthStateChanged
+       · currentUser / currentUid / currentEmail / isLoggedIn
+
+NUEVO ARCHIVO: src/app/services/patient-auth.service.ts
+
+
+────────────────────────────────────────────────────────────────────────────────
+3. SERVICIO DE PERFILES (PacienteProfileService)
+────────────────────────────────────────────────────────────────────────────────
+
+NUEVO ARCHIVO: src/app/services/paciente-profile.service.ts
+
+Interfaces definidas:
+  · PsicologoProfile  { nombre, email, matricula, codigoAcceso, creadoEn }
+  · PacienteProfile   { uid, patientKey, nombre, email, psicologoEmail,
+                        psicologoNombre, estadoCivil, edad, sexo, ocupacion,
+                        educacion, testsHabilitados[], creadoEn }
+
+Colecciones Firestore:
+  · psicologos/{email}   ← ID del doc = email en minúsculas
+  · pacientes/{uid}      ← ID del doc = UID de Firebase Auth
+
+Métodos clave:
+  · getPsicologoByCodigo(codigo)
+  · getPsicologoByEmail(email)
+  · createProfile(uid, data)
+  · getProfile(uid)
+  · getProfileByPatientKey(patientKey)
+  · updateTestsHabilitados(uid, tests[])
+  · psicologoEmailExists(email)
+  · createPsicologoProfile(data)  ← genera código único automáticamente
+  · generateCodigoUnico(nombre)   ← privado, genera ej. "DCM487"
+
+Constante exportada:
+  · AVAILABLE_TESTS = [{ id: 'BDI-II', nombre: 'Inventario de Depresión de Beck (BDI-II)' }]
+    (diseñado para escalar a ~50 tests)
+
+
+────────────────────────────────────────────────────────────────────────────────
+4. PÁGINAS NUEVAS CREADAS
+────────────────────────────────────────────────────────────────────────────────
+
+✅ /registro  →  src/app/pages/registro/  (registro de PACIENTES)
+   - Campos: nombre, email, contraseña, confirmar contraseña,
+             código de psicólogo (obligatorio),
+             estadoCivil, edad, sexo, ocupación, educación (opcionales)
+   - Flujo:  valida código → crea usuario Firebase Auth →
+             crea perfil Firestore → navega a /seleccion-test
+   - Errores Firebase mapeados al español
+
+✅ /login  →  src/app/pages/login-paciente/  (login de PACIENTES)
+   - Campos: email + contraseña
+   - Errores Firebase mapeados al español
+   - Navega a /seleccion-test al autenticarse
+
+✅ /registro-psicologo  →  src/app/pages/registro-psicologo/  (registro de PSICÓLOGOS)
+   - Campos: nombre completo, email, matrícula, contraseña, confirmar contraseña
+   - Flujo:  verifica que el email no esté ya registrado → crea usuario Firebase Auth →
+             crea perfil Firestore con código generado automáticamente (ej. "DCM487") →
+             muestra código generado de forma destacada → deja al psicólogo logueado
+             directamente y ofrece ir a /reportes
+   - Errores Firebase mapeados al español
+
+
+────────────────────────────────────────────────────────────────────────────────
+5. ACTUALIZACIÓN DE GUARDS
+────────────────────────────────────────────────────────────────────────────────
+
+src/app/guards/session-auth.guard.ts
+  - Ahora es async
+  - Llama a patientAuth.waitForInit() antes de decidir
+  - Revisa sessionStorage (psicólogos) primero, luego Firebase Auth (pacientes)
+  - Cualquier psicólogo autorizado que llegue a /home es redirigido a /reportes
+  - Redirige a /login si no autenticado
+
+src/app/guards/inventario-access.guard.ts
+  - Permite acceso a cualquier psicólogo autorizado (isAuthorized), no solo Diego
+  - Usa patientAuth.currentEmail como email de fallback
+  - Redirige a /seleccion-test si es paciente Firebase sin nombre
+
+
+────────────────────────────────────────────────────────────────────────────────
+6. ACTUALIZACIÓN DE PÁGINAS EXISTENTES
+────────────────────────────────────────────────────────────────────────────────
+
+seleccion-test.component (src/app/pages/seleccion-test/)
+  - Carga PacienteProfile si el usuario es paciente Firebase
+  - Filtra allTests[] por testsHabilitados[]
+  - Muestra mensaje "No tienes tests habilitados. Esperá a que tu analista
+    {nombre} te asigne algún test." cuando no hay tests activos
+  - Estado de carga (loading) mientras se obtiene el perfil
+  - Botón "Cerrar sesión" redirige a /acceso-reportes (no a /login)
+
+acceso-reportes.component (src/app/pages/acceso-reportes/)
+  - Rediseñado con dos secciones:
+    · "Soy psicólogo/a" → formulario email + contraseña con Firebase Auth real
+    · "Soy paciente"    → enlaces a /login y /registro
+  - Login valida con PatientAuthService.login() y guarda sesión en sessionStorage
+  - Redirige siempre a /reportes tras login exitoso
+
+reportes.component (src/app/pages/reportes/)
+  - Panel de código de acceso (.codigo-panel):
+    · Visible para cualquier psicólogo autenticado (isAuthorized)
+    · Carga el perfil del psicólogo logueado (currentEmail, no hardcodeado)
+  - Gestión de tests vinculada a resultado BDI (.patient-mgmt):
+    · Visible para cualquier psicólogo autenticado
+    · Si el paciente no tiene cuenta: mensaje informativo
+    · Si tiene cuenta: checklist de tests con botón "Guardar"
+  - Reevaluación (.reevaluation-panel): visible para cualquier psicólogo autenticado
+  - Gestión directa de tests (.direct-mgmt-panel) — SIEMPRE VISIBLE para cualquier psicólogo:
+    · Busca pacientes registrados por nombre (filtra por psicologoEmail en cliente)
+    · Permite habilitar/quitar tests aunque el paciente nunca haya tomado un test
+    · No require índices en Firestore
+  - CSS: .direct-mgmt-panel, .direct-mgmt-desc, .btn-volver-direct
+
+
+────────────────────────────────────────────────────────────────────────────────
+7. RUTAS Y MÓDULO
+────────────────────────────────────────────────────────────────────────────────
+
+app-routing.module.ts — rutas agregadas:
+  · /login              → LoginPacienteComponent       (pública)
+  · /registro           → RegistroComponent            (pública)
+  · /registro-psicologo → RegistroPsicologoComponent   (pública)
+  · /seleccion-test     guardada por SessionAuthGuard
+  · /home               guardada por SessionAuthGuard (psicólogos son redirigidos a /reportes)
+  · **                  redirige a /acceso-reportes
+
+app.component.html — navbar:
+  · Psicólogos autenticados (isAuthorized): muestran "Cuestionario" y "Reportes"
+  · El link "Home" fue eliminado del navbar de psicólogos
+
+app.module.ts — componentes declarados:
+  · RegistroComponent
+  · LoginPacienteComponent
+  · RegistroPsicologoComponent
+
+
+────────────────────────────────────────────────────────────────────────────────
+8. REGLAS DE FIRESTORE  (firestore.rules)
+────────────────────────────────────────────────────────────────────────────────
+
+  match /bdiResultados/{docId} {
+    allow read, write: if request.auth != null;
+  }
+
+  match /testReevaluationPermissions/{docId} {
+    allow read, write: if request.auth != null;
+  }
+
+  match /pacientes/{uid} {
+    allow read: if true;
+    allow write: if true;   // lectura y escritura libre (psicólogos sin Firebase Auth)
+  }
+
+  match /psicologos/{email} {
+    allow read: if true;    // lectura pública (validar código antes de autenticarse)
+    allow write: if request.auth != null;
+  }
+
+⚠️  ACCIÓN MANUAL REQUERIDA EN FIREBASE CONSOLE:
+    Crear documento manualmente en psicologos/diegoacastillopsi@gmail.com:
+    {
+      "nombre": "Diego Castillo",
+      "email": "diegoacastillopsi@gmail.com",
+      "codigoAcceso": "DCA001",
+      "matricula": "",
+      "creadoEn": "2026-01-01T00:00:00.000Z"
+    }
+
+
+────────────────────────────────────────────────────────────────────────────────
+9. NOTAS FINALES
+────────────────────────────────────────────────────────────────────────────────
+
+  · Todos los ítems planificados fueron completados.
+  · ReportesAuthService.isAuthorized: cualquier psicólogo con sesión activa.
+    isDiegoSession: true solo para diegoacastillopsi@gmail.com.
+  · El login de psicólogos valida con Firebase Auth (email + contraseña real).
+  · Cualquier psicólogo registrado accede a: Cuestionario, Reportes, paneles de
+    gestión de tests, reevaluación y código de acceso.
+  · El documento de Diego en Firestore ya existe en Firebase Console.
+  · Diego necesita un usuario en Firebase Authentication (Console → Auth → Add user)
+    con email diegoacastillopsi@gmail.com y la contraseña que desee.
+  · Las reglas de Firestore fueron publicadas manualmente en Firebase Console
+    (no hay firebase.json ni Firebase CLI configurado en el proyecto).
+  · Email/Password Auth fue habilitado manualmente en Firebase Console.
+  · La sección "Gestión de tests por cuenta" siempre visible para cualquier psicólogo.
+  · pacientes permite write: if true (compatibilidad con operaciones sin Firebase Auth).
+  · El sistema está listo para agregar más tests a AVAILABLE_TESTS en
+    paciente-profile.service.ts sin cambiar ningún otro archivo.
+  · Login de pacientes tiene botón "← Volver" a /acceso-reportes.
+  · Cerrar sesión del paciente redirige a /acceso-reportes.
+
+
+────────────────────────────────────────────────────────────────────────────────
+10. ESTRUCTURA DE ARCHIVOS NUEVA / MODIFICADA
+────────────────────────────────────────────────────────────────────────────────
+
+  NUEVOS:
+  src/app/services/patient-auth.service.ts
+  src/app/services/paciente-profile.service.ts
+  src/app/pages/registro/registro.component.{ts,html,css}
+  src/app/pages/login-paciente/login-paciente.component.{ts,html,css}
+  src/app/pages/registro-psicologo/registro-psicologo.component.{ts,html,css}
+
+  MODIFICADOS:
+  src/app/app-routing.module.ts
+  src/app/app.module.ts
+  src/app/guards/session-auth.guard.ts
+  src/app/guards/inventario-access.guard.ts
+  src/app/services/reportes-auth.service.ts
+  src/app/pages/seleccion-test/seleccion-test.component.{ts,html,css}
+  src/app/pages/acceso-reportes/acceso-reportes.component.{html,css}
+  src/app/pages/reportes/reportes.component.{ts,html,css}
+  firestore.rules
+
+================================================================================
+  FIN DEL DOCUMENTO
+================================================================================

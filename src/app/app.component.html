@@ -1,0 +1,17 @@
+<header class="topbar">
+  <h1>Inventario - Depresión de Beck</h1>
+  <div class="topbar-right" *ngIf="currentEmail">
+    <nav>
+      <a *ngIf="reportesAuth.isAuthorized" routerLink="/inventario" routerLinkActive="active">Cuestionario</a>
+      <a *ngIf="reportesAuth.isAuthorized" routerLink="/reportes" routerLinkActive="active">Reportes</a>
+    </nav>
+    <span *ngIf="currentEmail" class="session-email">{{ currentEmail }}</span>
+    <button *ngIf="currentEmail" type="button" class="logout-btn" (click)="cerrarSesion()">
+      Cerrar sesión
+    </button>
+  </div>
+</header>
+
+<main class="content">
+  <router-outlet></router-outlet>
+</main>

@@ -1,0 +1,463 @@
+<section class="reporte-container">
+	<h2>INVENTARIO DE DEPRESIÓN DE BECK (BDI-2)</h2>
+
+	<!-- Código de acceso del psicólogo -->
+	<section class="codigo-panel" *ngIf="isAuthorized && psicologoProfile">
+		<span>Tu código de acceso para pacientes:</span>
+		<strong class="codigo-acceso">{{ psicologoProfile.codigoAcceso }}</strong>
+		<small>Compártelo con tus pacientes para que se registren.</small>
+	</section>
+
+	<section class="search-panel">
+		<h3>Buscar paciente en historial</h3>
+		<div class="search-row">
+			<input
+				type="text"
+				[(ngModel)]="searchName"
+				placeholder="Buscar por nombre y apellido"
+				name="searchName"
+			/>
+			<button type="button" (click)="searchByPatientName()" [disabled]="isSearching">
+				{{ isSearching ? 'Buscando...' : 'Buscar' }}
+			</button>
+		</div>
+
+		<p class="submit-error" *ngIf="searchError">{{ searchError }}</p>
+
+		<ul class="results-list" *ngIf="foundResults.length > 0">
+			<li *ngFor="let patient of groupedPatients" (click)="selectPatient(patient)">
+				<strong>{{ patient.name }}</strong>
+				<span>{{ patient.testTypes.join(' · ') }} · Último: {{ shortDate(patient.latestDate) }}</span>
+			</li>
+		</ul>
+
+		<p *ngIf="searched && !isSearching && !searchError && foundResults.length === 0">No se encontraron pacientes con ese nombre.</p>
+	</section>
+
+	<section class="stored-result" *ngIf="selectedPatientKey">
+		<div class="patient-view-header">
+			<h3>{{ selectedPatientName }}</h3>
+			<button type="button" class="btn-volver-direct" (click)="clearPatientSelection()">&#8592; Volver</button>
+		</div>
+
+		<section class="summary-box" *ngIf="selectedPatientAllResults.length > 0">
+			<h3>Resumen integrado</h3>
+			<p>{{ patientSummaryText }}</p>
+			<ul *ngIf="patientTriangulationRules.length > 0">
+				<li *ngFor="let rule of patientTriangulationRules">{{ rule.regla }} &mdash; {{ rule.evidencia }}</li>
+			</ul>
+		</section>
+
+		<section class="analysis" *ngIf="patientAnalysis">
+			<h3>Análisis del registro</h3>
+
+			<div class="analysis-block">
+				<span class="analysis-icon">📋</span>
+				<div>
+					<h4 class="analysis-label">Estado actual</h4>
+					<p>{{ patientAnalysis.estadoActual }}</p>
+				</div>
+			</div>
+
+			<div class="analysis-block" *ngIf="patientAnalysis.evolucionBdi">
+				<span class="analysis-icon">📉</span>
+				<div>
+					<h4 class="analysis-label">Depresión (BDI-II)</h4>
+					<p>{{ patientAnalysis.evolucionBdi }}</p>
+				</div>
+			</div>
+
+			<div class="analysis-block" *ngIf="patientAnalysis.evolucionBai">
+				<span class="analysis-icon">😰</span>
+				<div>
+					<h4 class="analysis-label">Ansiedad (BAI)</h4>
+					<p>{{ patientAnalysis.evolucionBai }}</p>
+				</div>
+			</div>
+
+			<div class="analysis-block" *ngIf="patientAnalysis.itemsMejora.length > 0 || patientAnalysis.itemsEmpeora.length > 0">
+				<span class="analysis-icon">📊</span>
+				<div>
+					<h4 class="analysis-label">Ítems BDI-II con cambio ({{ patientAnalysis.itemsCompLabel }})</h4>
+					<div *ngIf="patientAnalysis.itemsMejora.length > 0" class="items-group items-mejora">
+						<span class="items-group-label">Mejoría:</span>
+						<span *ngFor="let item of patientAnalysis.itemsMejora" class="item-chip chip-mejor">
+							↓ {{ item.label }} ({{ item.levels }} nivel{{ item.levels > 1 ? 'es' : '' }})
+						</span>
+					</div>
+					<div *ngIf="patientAnalysis.itemsEmpeora.length > 0" class="items-group items-empeora">
+						<span class="items-group-label">Aumento:</span>
+						<span *ngFor="let item of patientAnalysis.itemsEmpeora" class="item-chip chip-peor">
+							↑ {{ item.label }} ({{ item.levels }} nivel{{ item.levels > 1 ? 'es' : '' }})
+						</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="analysis-block" *ngIf="patientAnalysis.triangulacion.length > 0">
+				<span class="analysis-icon">🔗</span>
+				<div>
+					<h4 class="analysis-label">Triangulación clínica</h4>
+					<ul class="triangulacion-list">
+						<li *ngFor="let t of patientAnalysis.triangulacion">
+							<strong>{{ t.regla }}</strong>
+							<span class="triangulacion-evidencia"> — {{ t.evidencia }}</span>
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="analysis-block recomendacion" [class.riesgo-alto]="patientAnalysis.hayRiesgoAlto">
+				<span class="analysis-icon">{{ patientAnalysis.hayRiesgoAlto ? '⚠️' : 'ℹ️' }}</span>
+				<div>
+					<h4 class="analysis-label">Recomendación</h4>
+					<p>{{ patientAnalysis.recomendacion }}</p>
+				</div>
+			</div>
+		</section>
+
+		<section class="rounds-section" *ngIf="patientRounds.length > 0">
+			<h3>Reportes</h3>
+			<div class="rounds-table-wrapper">
+				<table class="rounds-table">
+					<thead>
+						<tr>
+							<th class="th-round">Reporte</th>
+							<th>Fecha</th>
+							<th *ngFor="let tt of testTypesPresent">
+								{{ tt === 'BDI-II' ? 'Depresión (BDI-II)' : 'Ansiedad (BAI)' }}
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngFor="let round of patientRounds; let i = index"
+							[class.round-selected]="isSelectedRound(round)">
+							<td>Reporte {{ i + 1 }}</td>
+							<td>{{ shortDate(round.latestDate) }}</td>
+							<td *ngFor="let tt of testTypesPresent">
+								<ng-container *ngIf="getRoundResult(round, tt) as r; else noRes">
+									<button
+										class="btn-round-detail"
+										(click)="selectRoundResult(r)"
+										[class.btn-round-detail--active]="selectedResult?.id === r.id"
+									>
+										{{ r.puntajeTotal }} pts. &mdash; {{ r.nivelDepresion }}
+									</button>
+								</ng-container>
+								<ng-template #noRes>
+									<span class="round-no-result">&mdash;</span>
+								</ng-template>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<section class="charts-grid" *ngIf="patientRounds.length > 1">
+			<section class="chart-card">
+				<h3>Evolución de puntajes</h3>
+				<canvas baseChart [type]="'line'" [data]="lineChartData" [options]="lineChartOptions"></canvas>
+			</section>
+		</section>
+
+		<ng-container *ngIf="selectedResult">
+			<div class="detail-test-subheader">
+				<h4>Detalle: {{ selectedResult!.testType || 'BDI-II' }} &mdash; Reporte {{ selectedResultRoundNumber }}</h4>
+			</div>
+
+			<div class="result-grid">
+				<span>Nombre y Apellidos</span>
+			<strong>{{ selectedResult!.paciente.nombreApellidos || '-' }}</strong>
+
+			<span>Estado Civil</span>
+			<strong>{{ selectedResult!.paciente.estadoCivil || '-' }}</strong>
+
+			<span>Edad</span>
+			<strong>{{ selectedResult!.paciente.edad ?? '-' }}</strong>
+
+			<span>Sexo</span>
+			<strong>{{ selectedResult!.paciente.sexo || '-' }}</strong>
+
+			<span>Ocupación</span>
+			<strong>{{ selectedResult!.paciente.ocupacion || '-' }}</strong>
+
+			<span>Educación</span>
+			<strong>{{ selectedResult!.paciente.educacion || '-' }}</strong>
+
+			<span>Fecha de registro</span>
+			<strong>{{ formatStoredDate(selectedResult!.creadoEn) }}</strong>
+
+			<span>Puntaje Total</span>
+			<strong>{{ selectedResult!.puntajeTotal }}</strong>
+
+			<span>Nivel</span>
+			<strong>{{ selectedResult!.nivelDepresion }}</strong>
+
+			<span>Diagnóstico global</span>
+			<strong>{{ selectedResult!.diagnosticoGlobal || '-' }}</strong>
+		</div>
+
+			<section class="analysis analysis-reporte" *ngIf="selectedReportAnalysis">
+				<h3>Análisis de este reporte</h3>
+
+				<div class="analysis-block">
+					<span class="analysis-icon">📋</span>
+					<div>
+						<h4 class="analysis-label">Estado actual</h4>
+						<p>{{ selectedReportAnalysis.estadoActual }}</p>
+					</div>
+				</div>
+
+				<div class="analysis-block" *ngIf="selectedReportAnalysis.itemsEmpeora.length > 0">
+					<span class="analysis-icon">📊</span>
+					<div>
+						<h4 class="analysis-label">Ítems de atención ({{ selectedReportAnalysis.itemsCompLabel }})</h4>
+						<div class="items-group items-empeora">
+							<span *ngFor="let item of selectedReportAnalysis.itemsEmpeora" class="item-chip chip-peor">
+								{{ item.label }} — nivel {{ item.levels }}
+							</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="analysis-block" *ngIf="selectedReportAnalysis.triangulacion.length > 0">
+					<span class="analysis-icon">🔗</span>
+					<div>
+						<h4 class="analysis-label">Triangulación clínica</h4>
+						<ul class="triangulacion-list">
+							<li *ngFor="let t of selectedReportAnalysis.triangulacion">
+								<strong>{{ t.regla }}</strong>
+								<span class="triangulacion-evidencia"> — {{ t.evidencia }}</span>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+				<div class="analysis-block recomendacion" [class.riesgo-alto]="selectedReportAnalysis.hayRiesgoAlto">
+					<span class="analysis-icon">{{ selectedReportAnalysis.hayRiesgoAlto ? '⚠️' : 'ℹ️' }}</span>
+					<div>
+						<h4 class="analysis-label">Recomendación</h4>
+						<p>{{ selectedReportAnalysis.recomendacion }}</p>
+					</div>
+				</div>
+			</section>
+
+			<section class="respuestas" *ngIf="!selectedResult.testType || selectedResult.testType === 'BDI-II'">
+			<h3>Respuestas por sección</h3>
+
+			<!-- Una sola evaluación: lista simple -->
+			<ul *ngIf="selectedPatientAttempts.length <= 1">
+				<li *ngFor="let item of storedAnswerDetails">
+					<strong>{{ item.section }}</strong>
+					<p>{{ item.optionText }}</p>
+				</li>
+			</ul>
+
+			<!-- Múltiples evaluaciones: tabla comparativa -->
+			<div class="respuestas-tabla-wrapper" *ngIf="selectedPatientAttempts.length > 1">
+				<table class="respuestas-tabla">
+					<thead>
+						<tr>
+							<th>Sección</th>
+							<th *ngFor="let a of selectedPatientAttempts; let i = index">
+								Intento {{ i + 1 }}<br/>
+								<small>{{ shortDate(a.creadoEn) }}</small>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngFor="let row of storedAnswerDetailsComparative">
+							<td class="seccion-nombre">{{ row.section }}</td>
+							<td *ngFor="let ans of row.answers; let i = index"
+								[class.celda-vigente]="i === selectedPatientAttempts.length - 1">
+								{{ ans }}
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				</div>
+			</section>
+
+			<section class="respuestas" *ngIf="selectedResult.testType === 'BAI'">
+				<h3>Respuestas por síntoma</h3>
+
+				<!-- Una sola evaluación: lista simple -->
+				<ul *ngIf="selectedPatientAttempts.length <= 1">
+					<li *ngFor="let item of baiAnswerDetails">
+						<strong>{{ item.section }}</strong>
+						<p>{{ item.optionText }}</p>
+					</li>
+				</ul>
+
+				<!-- Múltiples evaluaciones: tabla comparativa -->
+				<div class="respuestas-tabla-wrapper" *ngIf="selectedPatientAttempts.length > 1">
+					<table class="respuestas-tabla">
+						<thead>
+							<tr>
+								<th>Síntoma</th>
+								<th *ngFor="let a of selectedPatientAttempts; let i = index">
+									Intento {{ i + 1 }}<br/>
+									<small>{{ shortDate(a.creadoEn) }}</small>
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr *ngFor="let row of baiAnswerDetailsComparative">
+								<td class="seccion-nombre">{{ row.section }}</td>
+								<td *ngFor="let ans of row.answers; let i = index"
+									[class.celda-vigente]="i === selectedPatientAttempts.length - 1">
+									{{ ans }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+		</ng-container>
+
+		<section class="reevaluation-panel" *ngIf="isAuthorized">
+			<p class="reeval-success" *ngIf="reevaluationMessage">{{ reevaluationMessage }}</p>
+
+			<button
+				type="button"
+				class="btn-reeval"
+				*ngIf="!showReevaluationForm && !reevaluationMessage"
+				(click)="showReevaluationForm = true"
+			>
+				Habilitar reevaluación
+			</button>
+
+			<div class="reeval-form" *ngIf="showReevaluationForm">
+				<p>Seleccione los tests y el motivo de reevaluación:</p>
+				<ul class="tests-checklist reeval-checklist">
+					<li *ngFor="let tt of testTypesPresent">
+						<label>
+							<input
+								type="checkbox"
+								[checked]="reevaluationSelectedTests[tt]"
+								(change)="reevaluationSelectedTests[tt] = !reevaluationSelectedTests[tt]"
+							/>
+							{{ tt === 'BDI-II' ? 'Depresión (BDI-II)' : 'Ansiedad (BAI)' }}
+						</label>
+					</li>
+				</ul>
+				<textarea
+					[(ngModel)]="reevaluationReason"
+					name="reevaluationReason"
+					rows="3"
+					placeholder="Ej: Alta del proceso terapéutico, seguimiento semestral..."
+				></textarea>
+				<p class="submit-error" *ngIf="reevaluationError">{{ reevaluationError }}</p>
+				<div class="reeval-actions">
+					<button type="button" class="btn-reeval" (click)="enableReevaluation()" [disabled]="isEnablingReevaluation">
+						{{ isEnablingReevaluation ? 'Guardando...' : 'Confirmar' }}
+					</button>
+					<button type="button" class="btn-reeval-cancel" (click)="showReevaluationForm = false; reevaluationError = ''">
+						Cancelar
+					</button>
+				</div>
+			</div>
+		</section>
+	</section>
+
+	<!-- Gestión directa de cuentas de pacientes (sin necesitar historial BDI) -->
+	<section class="direct-mgmt-panel" *ngIf="isAuthorized">
+		<h3>Gestión de tests por cuenta</h3>
+		<p class="direct-mgmt-desc">Buscá un paciente registrado para habilitarle o quitarle tests, aunque todavía no haya completado ningún test.</p>
+
+		<div class="search-row">
+			<input
+				type="text"
+				[(ngModel)]="directSearchName"
+				placeholder="Buscar por nombre y apellido"
+				name="directSearchName"
+				(keyup.enter)="searchDirectPatient()"
+			/>
+			<button type="button" (click)="searchDirectPatient()" [disabled]="directSearching">
+				{{ directSearching ? 'Buscando...' : 'Buscar' }}
+			</button>
+		</div>
+
+		<p *ngIf="directSearchError" style="color:#b00020">{{ directSearchError }}</p>
+
+		<p *ngIf="directSearched && !directSearching && !directSearchError && directSearchResults.length === 0">
+			No se encontró ningún paciente con ese nombre.
+		</p>
+
+		<ul class="results-list" *ngIf="directSearchResults.length > 0 && !directSelectedPatient">
+			<li *ngFor="let p of directSearchResults" (click)="selectDirectPatient(p)">
+				<strong>{{ p.nombreApellidos }}</strong>
+				<span>{{ p.email }}</span>
+			</li>
+		</ul>
+
+		<div *ngIf="directSelectedPatient" class="mgmt-checklist">
+			<p>
+				Tests habilitados para <strong>{{ directSelectedPatient.nombreApellidos }}</strong>
+				<button type="button" class="btn-volver-direct" (click)="directSelectedPatient = null; saveDirectTestsSuccess = ''; saveDirectTestsError = ''">← Volver</button>
+			</p>
+			<ul class="tests-checklist">
+				<li *ngFor="let test of availableTests">
+					<label>
+						<input
+							type="checkbox"
+							[(ngModel)]="directSelectedTests[test.id]"
+							[name]="'direct_' + test.id"
+						/>
+						{{ test.nombre }}
+					</label>
+				</li>
+			</ul>
+			<div class="mgmt-actions">
+				<button type="button" class="btn-reeval" (click)="saveDirectTestsHabilitados()" [disabled]="isSavingDirectTests">
+					{{ isSavingDirectTests ? 'Guardando...' : 'Guardar cambios' }}
+				</button>
+			</div>
+			<p class="reeval-success" *ngIf="saveDirectTestsSuccess">{{ saveDirectTestsSuccess }}</p>
+			<p class="submit-error" *ngIf="saveDirectTestsError">{{ saveDirectTestsError }}</p>
+		</div>
+	</section>
+
+	<!-- Historial de reevaluaciones habilitadas por el psicólogo -->
+	<section class="my-permissions-panel" *ngIf="isAuthorized && selectedPatientKey">
+		<div class="my-permissions-header">
+			<h3>Reevaluaciones habilitadas</h3>
+			<button type="button" class="btn-refresh" (click)="loadMyPermissions()" [disabled]="myPermissionsLoading">
+				{{ myPermissionsLoading ? 'Actualizando...' : 'Actualizar' }}
+			</button>
+		</div>
+
+		<p class="permissions-empty" *ngIf="!myPermissionsLoading && !permissionsError && myPermissions.length === 0">
+			No hay reevaluaciones registradas aún.
+		</p>
+		<p class="submit-error" *ngIf="permissionsError">{{ permissionsError }}</p>
+
+		<div class="permissions-table-wrapper" *ngIf="myPermissions.length > 0">
+			<table class="permissions-table">
+				<thead>
+					<tr>
+						<th>Test</th>
+						<th>Estado</th>
+						<th>Motivo</th>
+						<th>Habilitado el</th>
+						<th>Consumido el</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngFor="let p of myPermissions" [class.perm-consumed]="!p.allowed" [class.perm-pending]="p.allowed">
+						<td>{{ p.testType }}</td>
+						<td>
+							<span class="perm-badge" [class.badge-pending]="p.allowed" [class.badge-consumed]="!p.allowed">
+								{{ p.allowed ? 'Pendiente' : 'Consumido' }}
+							</span>
+						</td>
+						<td class="perm-reason">{{ p.reason || '-' }}</td>
+						<td>{{ formatStoredDate(p.updatedAt) }}</td>
+						<td>{{ p.lastConsumedAt ? formatStoredDate(p.lastConsumedAt) : '-' }}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+

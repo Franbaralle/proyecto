@@ -1,0 +1,124 @@
+<section class="auth-container">
+  <h2>Registro de paciente</h2>
+  <p>Complete sus datos para crear una cuenta. Los campos marcados con <strong>*</strong> son obligatorios.</p>
+
+  <div class="auth-links">
+    <a routerLink="/acceso-reportes">← Volver</a>
+  </div>
+
+  <form (ngSubmit)="submit()" class="auth-form">
+
+    <h3 class="form-section-title">Datos de acceso</h3>
+
+    <label for="nombre">Nombre y Apellidos *</label>
+    <input
+      id="nombre"
+      name="nombreApellidos"
+      type="text"
+      [(ngModel)]="nombreApellidos"
+      placeholder="Ej: García, Ana"
+    />
+
+    <label for="email">Email *</label>
+    <input
+      id="email"
+      name="email"
+      type="email"
+      [(ngModel)]="email"
+      placeholder="tu@email.com"
+    />
+
+    <label for="password">Contraseña * (mínimo 6 caracteres)</label>
+    <input
+      id="password"
+      name="password"
+      type="password"
+      [(ngModel)]="password"
+      placeholder="••••••"
+    />
+
+    <label for="confirmPassword">Confirmar contraseña *</label>
+    <input
+      id="confirmPassword"
+      name="confirmPassword"
+      type="password"
+      [(ngModel)]="confirmPassword"
+      placeholder="••••••"
+    />
+
+    <label for="codigo">Código del psicólogo *</label>
+    <input
+      id="codigo"
+      name="codigoPsicologo"
+      type="text"
+      [(ngModel)]="codigoPsicologo"
+      placeholder="Código que le dio su analista"
+      style="text-transform: uppercase"
+    />
+
+    <h3 class="form-section-title">Datos personales</h3>
+
+    <label for="estadoCivil">Estado civil</label>
+    <select id="estadoCivil" name="estadoCivil" [(ngModel)]="estadoCivil">
+      <option value="">— Seleccione —</option>
+      <option>Soltero/a</option>
+      <option>Casado/a</option>
+      <option>Divorciado/a</option>
+      <option>Viudo/a</option>
+      <option>En pareja</option>
+    </select>
+
+    <label for="edad">Edad</label>
+    <input
+      id="edad"
+      name="edad"
+      type="number"
+      [(ngModel)]="edad"
+      min="1"
+      max="120"
+      placeholder="Ej: 34"
+    />
+
+    <label for="sexo">Sexo</label>
+    <select id="sexo" name="sexo" [(ngModel)]="sexo">
+      <option value="">— Seleccione —</option>
+      <option>Masculino</option>
+      <option>Femenino</option>
+      <option>No binario</option>
+      <option>Prefiero no responder</option>
+    </select>
+
+    <label for="ocupacion">Ocupación</label>
+    <input
+      id="ocupacion"
+      name="ocupacion"
+      type="text"
+      [(ngModel)]="ocupacion"
+      placeholder="Ej: Docente"
+    />
+
+    <label for="educacion">Nivel de educación</label>
+    <select id="educacion" name="educacion" [(ngModel)]="educacion">
+      <option value="">— Seleccione —</option>
+      <option>Primario incompleto</option>
+      <option>Primario completo</option>
+      <option>Secundario incompleto</option>
+      <option>Secundario completo</option>
+      <option>Terciario incompleto</option>
+      <option>Terciario completo</option>
+      <option>Universitario incompleto</option>
+      <option>Universitario completo</option>
+      <option>Posgrado</option>
+    </select>
+
+    <p class="auth-error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+    <button type="submit" [disabled]="isLoading">
+      {{ isLoading ? 'Creando cuenta...' : 'Crear cuenta' }}
+    </button>
+  </form>
+
+  <div class="auth-links">
+    <p>¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a></p>
+  </div>
+</section>

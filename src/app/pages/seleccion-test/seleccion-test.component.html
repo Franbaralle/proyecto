@@ -1,0 +1,98 @@
+<section class="seleccion-container">
+
+  <!-- Modal de Consentimiento Informado -->
+  <div class="consent-overlay" *ngIf="mostrarConsentimiento" role="dialog" aria-modal="true" aria-labelledby="consent-title">
+    <div class="consent-modal">
+      <h2 id="consent-title">Consentimiento Informado</h2>
+      <div class="consent-body">
+        <p>Antes de comenzar, se le informa que está por completar uno o más cuestionarios psicológicos como parte de un proceso de evaluación realizado por su profesional tratante. Estos instrumentos tienen como finalidad evaluar aspectos emocionales, cognitivos y/o conductuales, brindando información complementaria para su proceso psicológico. Los resultados obtenidos constituyen herramientas de apoyo y no reemplazan en ningún caso la evaluación ni el criterio clínico del profesional.</p>
+        <p>Con el objetivo de resguardar su privacidad, este sistema ha sido diseñado para no solicitar ni almacenar datos personales identificatorios tales como nombre, apellido o número de documento. La información será registrada únicamente mediante un código asignado por su profesional, lo que garantiza que su identidad no pueda ser asociada directamente a las respuestas dentro del sistema. En este sentido, no se almacenarán datos personales identificables en servidores, y únicamente su profesional podrá vincular el código con su identidad en el marco de la atención clínica.</p>
+        <p>Las respuestas brindadas serán utilizadas exclusivamente con fines clínicos, diagnósticos y/o de seguimiento terapéutico. El sistema podrá procesar automáticamente la información para generar puntajes, gráficos o reportes, los cuales serán interpretados únicamente por el profesional interviniente. Bajo ninguna circunstancia esta información será utilizada con fines comerciales ni compartida con terceros.</p>
+        <p>De acuerdo con la Ley N.º 25.326 de Protección de Datos Personales, usted tiene derecho a acceder, rectificar o solicitar la eliminación de la información proporcionada, pudiendo realizar dicha solicitud a su profesional tratante. La Agencia de Acceso a la Información Pública es el órgano de control encargado de velar por el cumplimiento de esta normativa.</p>
+        <p>Se deja constancia de que este sistema no realiza diagnósticos automáticos y que los resultados deben ser interpretados exclusivamente por un profesional de la salud mental. Asimismo, su participación es voluntaria, pudiendo omitir responder cualquier pregunta o interrumpir el cuestionario en cualquier momento sin que ello afecte su proceso terapéutico.</p>
+        <p><strong>Al continuar, usted declara haber leído y comprendido la información precedente y brinda su consentimiento para participar en la evaluación en las condiciones aquí establecidas.</strong></p>
+      </div>
+      <div class="consent-actions">
+        <button type="button" class="btn-rechazar" (click)="rechazarConsentimiento()">Cancelar</button>
+        <button type="button" class="btn-aceptar" (click)="aceptarConsentimiento()">Acepto y continúo</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="seleccion-header">
+    <h2>Cuestionarios disponibles</h2>
+    <button
+      *ngIf="isFirebasePatient"
+      type="button"
+      class="btn-cerrar-sesion"
+      (click)="cerrarSesion()"
+    >
+      Cerrar sesión
+    </button>
+  </div>
+
+  <div *ngIf="isLoadingProfile" class="loading-profile">
+    <p>Cargando tu perfil...</p>
+  </div>
+
+  <div *ngIf="!isLoadingProfile && noTestsEnabled" class="no-tests-panel">
+    <p>
+      No tienes tests habilitados aún.<br />
+      Esperá a que tu analista <strong>{{ psicologoNombre }}</strong> te asigne algún test.
+    </p>
+  </div>
+
+  <ng-container *ngIf="!isLoadingProfile && !noTestsEnabled">
+    <p class="seleccion-intro">
+      Seleccione el cuestionario que desea completar.
+      Si ya completó alguno, lo verá indicado.
+    </p>
+
+    <ul class="test-list">
+      <li class="test-card" *ngFor="let test of tests">
+        <div class="test-info">
+          <h3>{{ test.nombre }}</h3>
+          <p>{{ test.descripcion }}</p>
+        </div>
+
+        <div class="test-action">
+          <span class="badge-completado" *ngIf="!test.cargando && test.yaCompletado">
+            ✓ Ya completado
+          </span>
+          <span class="badge-pendiente" *ngIf="!test.cargando && test.pendienteLocal">
+            ✓ Guardado — pendiente de envío
+          </span>
+          <span class="badge-cargando" *ngIf="test.cargando">
+            Verificando...
+          </span>
+          <button
+            *ngIf="!test.yaCompletado && !test.pendienteLocal"
+            type="button"
+            class="btn-iniciar"
+            (click)="irAlTest(test)"
+            [disabled]="test.cargando"
+          >
+            Iniciar
+          </button>
+        </div>
+      </li>
+    </ul>
+
+    <div class="enviar-panel" *ngIf="todosListosParaEnviar || submitAllSuccess">
+      <p class="enviar-info" *ngIf="!submitAllSuccess">
+        Todos los cuestionarios están completados. Cuando estés listo, enviá los resultados a tu analista.
+      </p>
+      <p class="submit-success" *ngIf="submitAllSuccess">{{ submitAllSuccess }}</p>
+      <p class="submit-error" *ngIf="submitAllError">{{ submitAllError }}</p>
+      <button
+        *ngIf="todosListosParaEnviar"
+        type="button"
+        class="btn-enviar-resultados"
+        (click)="enviarResultados()"
+        [disabled]="isSubmittingAll"
+      >
+        {{ isSubmittingAll ? 'Enviando...' : 'Enviar Resultados' }}
+      </button>
+    </div>
+  </ng-container>
+</section>

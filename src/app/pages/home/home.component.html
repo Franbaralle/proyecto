@@ -1,0 +1,94 @@
+<section class="form-container">
+	<h2>INVENTARIO DE DEPRESIÓN DE BECK (BDI-2)</h2>
+
+	<form #homeForm="ngForm" (ngSubmit)="goNext(homeForm)">
+		<div class="actions">
+			<button type="button" (click)="fillDemoData()">Autocompletar ejemplo</button>
+			<button type="button" class="secondary" (click)="clearData()">Limpiar datos</button>
+		</div>
+
+		<h3>Datos del Paciente</h3>
+		<div class="form-grid">
+			<label for="nombreApellido">Nombre y Apellido</label>
+			<div class="field-control">
+				<input id="nombreApellido" type="text" name="nombreApellido" [(ngModel)]="bdiData.patient.nombreApellidos" placeholder="Ingrese nombre y apellido" required #nombreApellido="ngModel" />
+				<small class="field-error" *ngIf="nombreApellido.invalid && (nombreApellido.touched || homeForm.submitted)">Este campo es obligatorio.</small>
+			</div>
+
+			<label for="estadoCivil">Estado Civil</label>
+			<div class="field-control">
+				<input id="estadoCivil" type="text" name="estadoCivil" [(ngModel)]="bdiData.patient.estadoCivil" placeholder="Ingrese estado civil" required #estadoCivil="ngModel" />
+				<small class="field-error" *ngIf="estadoCivil.invalid && (estadoCivil.touched || homeForm.submitted)">Este campo es obligatorio.</small>
+			</div>
+
+			<label for="edad">Edad</label>
+			<div class="field-control">
+				<input id="edad" type="number" name="edad" [(ngModel)]="bdiData.patient.edad" min="1" max="120" required #edad="ngModel" />
+				<small class="field-error" *ngIf="edad.invalid && (edad.touched || homeForm.submitted)">Ingrese una edad válida (1-120).</small>
+			</div>
+
+			<label for="sexo">Sexo</label>
+			<div class="field-control">
+				<input id="sexo" type="text" name="sexo" [(ngModel)]="bdiData.patient.sexo" required #sexo="ngModel" />
+				<small class="field-error" *ngIf="sexo.invalid && (sexo.touched || homeForm.submitted)">Este campo es obligatorio.</small>
+			</div>
+
+			<label for="ocupacion">Ocupación</label>
+			<div class="field-control">
+				<input id="ocupacion" type="text" name="ocupacion" [(ngModel)]="bdiData.patient.ocupacion" required #ocupacion="ngModel" />
+				<small class="field-error" *ngIf="ocupacion.invalid && (ocupacion.touched || homeForm.submitted)">Este campo es obligatorio.</small>
+			</div>
+
+			<label for="educacion">Educación</label>
+			<div class="field-control">
+				<input id="educacion" type="text" name="educacion" [(ngModel)]="bdiData.patient.educacion" required #educacion="ngModel" />
+				<small class="field-error" *ngIf="educacion.invalid && (educacion.touched || homeForm.submitted)">Este campo es obligatorio.</small>
+			</div>
+
+			<label for="fecha">Fecha</label>
+			<div class="field-control">
+				<input id="fecha" type="date" name="fecha" [(ngModel)]="bdiData.patient.fecha" required #fecha="ngModel" />
+				<small class="field-error" *ngIf="fecha.invalid && (fecha.touched || homeForm.submitted)">Este campo es obligatorio.</small>
+			</div>
+		</div>
+
+		<hr />
+
+		<h3>Datos del Profesional</h3>
+		<div class="form-grid">
+			<label for="profesional">Profesional</label>
+			<div class="field-control">
+				<input id="profesional" type="text" name="profesional" [(ngModel)]="bdiData.professional.profesional" required #profesional="ngModel" />
+				<small class="field-error" *ngIf="profesional.invalid && (profesional.touched || homeForm.submitted)">Este campo es obligatorio.</small>
+			</div>
+
+			<label for="matricula">Matrícula</label>
+			<div class="field-control">
+				<input id="matricula" type="text" name="matricula" [(ngModel)]="bdiData.professional.matricula" required #matricula="ngModel" />
+				<small class="field-error" *ngIf="matricula.invalid && (matricula.touched || homeForm.submitted)">Este campo es obligatorio.</small>
+			</div>
+
+			<label for="domicilio">Domicilio</label>
+			<div class="field-control">
+				<input id="domicilio" type="text" name="domicilio" [(ngModel)]="bdiData.professional.domicilio" required #domicilio="ngModel" />
+				<small class="field-error" *ngIf="domicilio.invalid && (domicilio.touched || homeForm.submitted)">Este campo es obligatorio.</small>
+			</div>
+
+			<label for="email">Email</label>
+			<div class="field-control">
+				<input id="email" type="email" name="email" [(ngModel)]="bdiData.professional.email" required email #email="ngModel" />
+				<small class="field-error" *ngIf="email.invalid && (email.touched || homeForm.submitted)">Ingrese un email válido.</small>
+			</div>
+
+			<label for="telefono">Teléfono</label>
+			<div class="field-control">
+				<input id="telefono" type="tel" name="telefono" [(ngModel)]="bdiData.professional.telefono" required #telefono="ngModel" />
+				<small class="field-error" *ngIf="telefono.invalid && (telefono.touched || homeForm.submitted)">Este campo es obligatorio.</small>
+			</div>
+		</div>
+
+		<div class="next-wrapper">
+			<button type="submit" class="next-btn">Siguiente</button>
+		</div>
+	</form>
+</section>
