@@ -605,6 +605,52 @@ h2 {
 	background: #f0f7ff;
 }
 
+.respuestas-tabla th.puntaje-col,
+.respuestas-tabla td.puntaje-col {
+	background: #fff8e1;
+	text-align: center;
+	font-weight: 600;
+	color: #f57c00;
+	min-width: 70px;
+}
+
+.respuestas-tabla th.puntaje-col {
+	background: #fff3cd;
+}
+
+.respuestas-tabla th.intento-header {
+	background: #e3f2fd;
+	text-align: center;
+	font-weight: 700;
+	color: #1976d2;
+	border-bottom: 2px solid #1976d2;
+}
+
+.respuestas-tabla th.subheader-col {
+	background: #f5f5f5;
+	text-align: center;
+	font-weight: 500;
+	font-size: 0.8rem;
+	color: #666;
+}
+
+.respuestas-tabla small.score-detail {
+	display: block;
+	font-size: 0.75rem;
+	color: #f57c00;
+	font-weight: 600;
+	margin-top: 0.2rem;
+}
+
+.respuestas-tabla-individual {
+	font-size: 0.9rem;
+}
+
+.respuestas-tabla-individual td,
+.respuestas-tabla-individual th {
+	padding: 0.6rem 0.8rem;
+}
+
 /* ── Sub-header de test individual ── */
 .detail-test-subheader {
 	margin-top: 1.25rem;
@@ -749,4 +795,33 @@ h2 {
 	height: 1.1rem;
 	cursor: pointer;
 	accent-color: #4a90d9;
+}
+
+/* ── Lista de Parte B del IHL ── */
+.partb-list {
+	list-style: none;
+	padding: 0;
+	margin: 1rem 0;
+}
+
+.partb-list li {
+	margin-bottom: 1.2rem;
+	padding: 0.8rem 1rem;
+	background: #f9f9f9;
+	border-left: 3px solid #4a90d9;
+	border-radius: 4px;
+}
+
+.partb-list li strong {
+	display: block;
+	margin-bottom: 0.4rem;
+	color: #2f4f4f;
+	font-size: 0.95rem;
+}
+
+.partb-list li p {
+	margin: 0;
+	color: #555;
+	font-size: 0.9rem;
+	line-height: 1.5;
 }

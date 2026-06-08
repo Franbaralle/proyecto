@@ -1,5 +1,5 @@
 <section class="reporte-container">
-	<h2>INVENTARIO DE DEPRESIÓN DE BECK (BDI-2)</h2>
+	<h2>Panel Psicologo</h2>
 
 	<!-- Código de acceso del psicólogo -->
 	<section class="codigo-panel" *ngIf="isAuthorized && psicologoProfile">
@@ -351,34 +351,71 @@
 			<section class="respuestas" *ngIf="selectedResult.testType === 'IHL'">
 				<h3>Respuestas Parte A - Situaciones</h3>
 
-				<!-- Una sola evaluación: lista simple -->
-				<ul *ngIf="selectedPatientAttempts.length <= 1">
-					<li *ngFor="let item of ihlAnswerDetails">
-						<strong>{{ item.section }}</strong>
-						<p>{{ item.optionText }}</p>
-					</li>
-				</ul>
+				<!-- Una sola evaluación: tabla con puntajes -->
+				<div class="respuestas-tabla-wrapper" *ngIf="selectedPatientAttempts.length <= 1">
+					<table class="respuestas-tabla respuestas-tabla-individual">
+						<thead>
+							<tr>
+								<th>Situación</th>
+								<th>Frecuencia</th>
+								<th>Malestar</th>
+								<th class="puntaje-col">Puntaje Total</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr *ngFor="let item of ihlAnswerDetails">
+								<td class="seccion-nombre">Situación {{ item.situacion }}</td>
+								<td>{{ item.frequency }}<br/><small class="score-detail">({{ item.freqScore }} pts)</small></td>
+								<td>{{ item.discomfort }}<br/><small class="score-detail">({{ item.discomfortScore }} pts)</small></td>
+								<td class="puntaje-col"><strong>{{ item.totalScore }}</strong></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 
 				<!-- Múltiples evaluaciones: tabla comparativa -->
 				<div class="respuestas-tabla-wrapper" *ngIf="selectedPatientAttempts.length > 1">
 					<table class="respuestas-tabla">
 						<thead>
 							<tr>
-								<th>Situación</th>
-								<th *ngFor="let a of selectedPatientAttempts; let i = index">
-									Intento {{ i + 1 }}<br/>
-									<small>{{ shortDate(a.creadoEn) }}</small>
-								</th>
+								<th rowspan="2">Situación</th>
+								<ng-container *ngFor="let a of selectedPatientAttempts; let i = index">
+									<th colspan="3" class="intento-header">Intento {{ i + 1 }}<br/>
+										<small>{{ shortDate(a.creadoEn) }}</small>
+									</th>
+								</ng-container>
+							</tr>
+							<tr>
+								<ng-container *ngFor="let a of selectedPatientAttempts">
+									<th class="subheader-col">Frecuencia</th>
+									<th class="subheader-col">Malestar</th>
+									<th class="puntaje-col">Total</th>
+								</ng-container>
 							</tr>
 						</thead>
 						<tbody>
-							<tr *ngFor="let item of ihlAnswerDetails">
-								<td class="seccion-nombre">{{ item.section }}</td>
-								<td>{{ item.optionText }}</td>
+							<tr *ngFor="let item of ihlAnswerDetailsComparative">
+								<td class="seccion-nombre">Situación {{ item.situacion }}</td>
+								<ng-container *ngFor="let freq of item.frequencies; let i = index">
+									<td>{{ item.frequencies[i] }}<br/><small class="score-detail">({{ item.freqScores[i] }} pts)</small></td>
+									<td>{{ item.discomforts[i] }}<br/><small class="score-detail">({{ item.discomfortScores[i] }} pts)</small></td>
+									<td class="puntaje-col"><strong>{{ item.totalScores[i] }}</strong></td>
+								</ng-container>
 							</tr>
 						</tbody>
 					</table>
 				</div>
+			</section>
+
+			<!-- Parte B del IHL -->
+			<section class="respuestas" *ngIf="selectedResult.testType === 'IHL' && ihlPartBDetails">
+				<h3>Respuestas Parte B - Contexto y Consecuencias</h3>
+				<ul class="partb-list">
+					<li *ngFor="let item of ihlPartBDetails">
+						<strong>{{ item.question }}</strong>
+						<p>{{ item.answer }}</p>
+					</li>
+				</ul>
 			</section>
 		</ng-container>
 

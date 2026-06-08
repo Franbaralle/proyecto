@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { firebaseConfig } from '../config/firebase.config';
 import { firebaseAuth, firestoreDb } from '../config/firebase.app';
 import { BdiDataService, PatientData, ProfessionalData, TriangulationDetail } from './bdi-data.service';
+import { IhlPartBAnswers } from './ihl-data.service';
 import { CryptoService } from './crypto.service';
 import { addDoc, collection, getDocs, limit, orderBy, query, updateDoc, where } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
@@ -39,6 +40,7 @@ export interface StoredBdiResult {
   paciente: PatientData;
   profesional: ProfessionalData;
   respuestas: number[];
+  partB?: IhlPartBAnswers;
   puntajeTotal: number;
   nivelDepresion: string;
   triangulacion: TriangulationDetail[];
@@ -188,6 +190,7 @@ export class BdiSubmissionService {
         paciente: await this.resolveJson<PatientData>(data['paciente'], {} as PatientData),
         profesional: await this.resolveJson<ProfessionalData>(data['profesional'], {} as ProfessionalData),
         respuestas: await this.resolveResponses(data['respuestas']),
+        partB: await this.resolveJson<IhlPartBAnswers | undefined>(data['partB'], undefined),
         puntajeTotal: await this.resolveNumber(data['puntajeTotal']),
         nivelDepresion: await this.resolveString(data['nivelDepresion']),
         triangulacion: await this.resolveJson<TriangulationDetail[]>(data['triangulacion'], [])

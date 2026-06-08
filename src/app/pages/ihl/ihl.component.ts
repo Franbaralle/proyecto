@@ -159,22 +159,28 @@ export class IhlComponent implements OnInit {
   }
 
   frequencyResponse(itemIndex: number): number {
-    return this.ihlData.responses[itemIndex];
+    const stored = this.ihlData.responses[itemIndex];
+    // Invertir al leer: los valores están guardados invertidos
+    return stored >= 0 ? 4 - stored : stored;
   }
 
   discomfortResponse(itemIndex: number): number {
-    return this.ihlData.responses[this.items.length + itemIndex];
+    const stored = this.ihlData.responses[this.items.length + itemIndex];
+    // Invertir al leer: los valores están guardados invertidos (Alto=3, Medio=2, Bajo=1)
+    return stored >= 0 ? 3 - stored : stored;
   }
 
   selectFrequency(itemIndex: number, value: number): void {
-    this.ihlData.responses[itemIndex] = value;
+    // Invertir el puntaje: "Nunca" (índice 4) debe ser 0 puntos, "Todos los días" (índice 0) debe ser 4 puntos
+    this.ihlData.responses[itemIndex] = 4 - value;
     this.ihlData.saveSession();
     this.submitMessage = '';
     this.submitError = '';
   }
 
   selectDiscomfort(itemIndex: number, value: number): void {
-    this.ihlData.responses[this.items.length + itemIndex] = value;
+    // Invertir el puntaje: Alto (índice 0)=3 puntos, Medio (índice 1)=2 puntos, Bajo (índice 2)=1 punto
+    this.ihlData.responses[this.items.length + itemIndex] = 3 - value;
     this.ihlData.saveSession();
     this.submitMessage = '';
     this.submitError = '';
@@ -249,6 +255,22 @@ export class IhlComponent implements OnInit {
     }
 
     this.isSubmitting = true;
+    
+    // Log de los resultados antes de enviar
+    console.log('=== RESULTADOS IHL ===');
+    console.log('Puntaje Total:', this.ihlData.totalScore);
+    console.log('Nivel:', this.ihlData.hostigamientoLevel);
+    console.log('Respuestas completas (frequencies + discomforts):', this.ihlData.responses);
+    console.log('Preguntas con puntaje especial (10, 24, 11, 21, 43, 52, 20)');
+    const specialQuestions = [10, 24, 11, 21, 43, 52, 20];
+    specialQuestions.forEach((q) => {
+      const index = q - 1;
+      const storedValue = this.ihlData.responses[index];
+      const uiValue = storedValue >= 0 ? 4 - storedValue : -1;
+      console.log(`  Pregunta ${q}: UI=${uiValue}, Stored=${storedValue}`);
+    });
+    console.log('======================');
+    
     try {
       await this.ihlSubmissionService.submitCurrentResult();
       this.ihlData.clearSession();

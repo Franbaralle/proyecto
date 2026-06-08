@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { PatientData, ProfessionalData } from './bdi-data.service';
 
+// Preguntas con esquema especial de puntaje de frecuencia (en base 1)
+export const SPECIAL_FREQUENCY_QUESTIONS = [10, 24, 11, 21, 43, 52, 20];
+
 export interface IhlPartBAnswers {
   q1: number;
   q2: number;
@@ -48,6 +51,9 @@ export class IhlDataService {
   };
 
   private readonly ITEM_COUNT = 63;
+  // Preguntas con puntaje especial de frecuencia (en base 1)
+  private readonly SPECIAL_FREQUENCY_QUESTIONS = [10, 24, 11, 21, 43, 52, 20];
+  
   responses: number[] = Array(this.ITEM_COUNT * 2).fill(-1);
   partB: IhlPartBAnswers = {
     q1: -1,
@@ -136,8 +142,48 @@ export class IhlDataService {
     return this.responses.filter((value) => value < 0).length;
   }
 
+  /**
+   * Verifica si una pregunta usa el esquema de puntaje especial
+   * @param itemIndex Índice de la pregunta (base 0)
+   */
+  private isSpecialFrequencyQuestion(itemIndex: number): boolean {
+    const questionNumber = itemIndex + 1; // Convertir a base 1
+    return this.SPECIAL_FREQUENCY_QUESTIONS.includes(questionNumber);
+  }
+
+  /**
+   * Calcula el puntaje de frecuencia para una pregunta
+   * @param storedValue Valor guardado (ya invertido: 4 - uiIndex)
+   * @param itemIndex Índice de la pregunta (base 0)
+   */
+  private getFrequencyScore(storedValue: number, itemIndex: number): number {
+    if (storedValue < 0) return 0;
+    
+    if (this.isSpecialFrequencyQuestion(itemIndex)) {
+      // Puntaje especial: Todos los días (4) o Algunas veces a la semana (3) = 4 puntos
+      // Algunas veces al mes (2) o Algunas veces al año (1) = 3 puntos
+      // Nunca (0) = 0 puntos
+      if (storedValue >= 3) return 4; // stored=4 o 3 → uiIndex=0 o 1 → 4 puntos
+      if (storedValue >= 1) return 3; // stored=2 o 1 → uiIndex=2 o 3 → 3 puntos
+      return 0; // stored=0 → uiIndex=4 → 0 puntos
+    }
+    
+    // Puntaje normal: el valor guardado ya es el puntaje correcto (4-uiIndex)
+    return storedValue;
+  }
+
   get totalScore(): number {
-    return this.responses.reduce((acc, value) => acc + (value >= 0 ? value : 0), 0);
+    let total = 0;
+    
+    // Para cada situación: frecuencia × malestar
+    for (let i = 0; i < this.ITEM_COUNT; i++) {
+      const freqScore = this.getFrequencyScore(this.responses[i], i);
+      const discomfortScore = this.responses[this.ITEM_COUNT + i];
+      const discomfortPoints = discomfortScore >= 0 ? discomfortScore : 0;
+      total += freqScore * discomfortPoints;
+    }
+    
+    return total;
   }
 
   get isPatientDataComplete(): boolean {

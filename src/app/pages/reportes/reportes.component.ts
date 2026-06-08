@@ -320,12 +320,10 @@ export class ReportesComponent implements OnInit {
     this.directSearching = true;
     try {
       const emailUsado = this.authService.currentEmail;
-      console.log('[DEBUG] Buscando pacientes de psicólogo:', JSON.stringify(emailUsado));
       this.directSearchResults = await this.profileService.searchPatientsByName(
         this.directSearchName,
         emailUsado
       );
-      console.log('[DEBUG] Resultados:', this.directSearchResults.length, this.directSearchResults);
     } catch (e: unknown) {
       this.directSearchError = e instanceof Error ? e.message : 'Error al buscar.';
       this.directSearchResults = [];
@@ -503,30 +501,202 @@ export class ReportesComponent implements OnInit {
   private readonly IHL_PART_A_FREQUENCY = ['Todos los días', 'Algunas veces a la semana', 'Algunas veces al mes', 'Algunas veces al año', 'Nunca'];
   private readonly IHL_PART_A_DISCOMFORT = ['Alto', 'Medio', 'Bajo'];
 
-  get ihlAnswerDetails(): StoredAnswerDetail[] {
+  get ihlAnswerDetails(): { situacion: number; frequency: string; discomfort: string; freqScore: number; discomfortScore: number; totalScore: number }[] {
     if (!this.selectedResult || this.selectedResult.testType !== 'IHL') { return []; }
-    const details: StoredAnswerDetail[] = [];
+    const details: { situacion: number; frequency: string; discomfort: string; freqScore: number; discomfortScore: number; totalScore: number }[] = [];
     const respuestas = this.selectedResult.respuestas || [];
     const itemCount = 63;
+    const specialQuestions = [10, 24, 11, 21, 43, 52, 20];
 
     for (let i = 0; i < itemCount; i++) {
+      const questionNumber = i + 1;
+      const isSpecial = specialQuestions.includes(questionNumber);
+      
       const freqScore = respuestas[i] ?? -1;
       const discomfortScore = respuestas[itemCount + i] ?? -1;
-      const freqText = freqScore >= 0 && freqScore < this.IHL_PART_A_FREQUENCY.length
-        ? this.IHL_PART_A_FREQUENCY[freqScore]
+      
+      // Los valores están guardados invertidos: "Nunca"=4 se guardó como 0, "Todos los días"=0 se guardó como 4
+      // Malestar: Alto=3, Medio=2, Bajo=1
+      const freqIndex = freqScore >= 0 ? 4 - freqScore : -1;
+      const discomfortIndex = discomfortScore >= 0 ? 3 - discomfortScore : -1;
+      
+      const freqText = freqIndex >= 0 && freqIndex < this.IHL_PART_A_FREQUENCY.length
+        ? this.IHL_PART_A_FREQUENCY[freqIndex]
         : 'Sin respuesta';
-      const discomfortText = discomfortScore >= 0 && discomfortScore < this.IHL_PART_A_DISCOMFORT.length
-        ? this.IHL_PART_A_DISCOMFORT[discomfortScore]
+      const discomfortText = discomfortIndex >= 0 && discomfortIndex < this.IHL_PART_A_DISCOMFORT.length
+        ? this.IHL_PART_A_DISCOMFORT[discomfortIndex]
         : 'Sin respuesta';
+      
+      // Calcular puntajes
+      let freqPoints = 0;
+      if (freqScore >= 0) {
+        if (isSpecial) {
+          if (freqScore >= 3) freqPoints = 4;
+          else if (freqScore >= 1) freqPoints = 3;
+          else freqPoints = 0;
+        } else {
+          freqPoints = freqScore;
+        }
+      }
+      
+      const discomfortPoints = discomfortScore >= 0 ? discomfortScore : 0;
+      const totalPoints = freqPoints * discomfortPoints;
+      
       details.push({
-        section: `Situación ${i + 1} - Frecuencia`,
-        optionText: freqText
-      });
-      details.push({
-        section: `Situación ${i + 1} - Malestar`,
-        optionText: discomfortText
+        situacion: questionNumber,
+        frequency: freqText,
+        discomfort: discomfortText,
+        freqScore: freqPoints,
+        discomfortScore: discomfortPoints,
+        totalScore: totalPoints
       });
     }
+    return details;
+  }
+
+  get ihlPartBDetails(): { question: string; answer: string }[] | null {
+    if (!this.selectedResult || this.selectedResult.testType !== 'IHL' || !this.selectedResult.partB) {
+      return null;
+    }
+    
+    const partB = this.selectedResult.partB;
+    const details: { question: string; answer: string }[] = [];
+    
+    // Q1: ¿Ha sido testigo de acciones hostigadoras?
+    details.push({
+      question: '1. ¿Ha sido testigo de acciones hostigadoras hacia otros compañeros?',
+      answer: partB.q1 === 0 ? 'Sí' : 'No'
+    });
+    
+    // Q2: ¿Considera que padece hostigamiento laboral?
+    details.push({
+      question: '2. ¿Considera usted que padece hostigamiento laboral?',
+      answer: partB.q2 === 0 ? 'Sí' : 'No'
+    });
+    
+    // Si respondió No a q2, no hay más preguntas
+    if (partB.q2 !== 0) {
+      return details;
+    }
+    
+    // Q3: ¿Con qué frecuencia?
+    const freqOptions = ['Diariamente', 'Semanalmente', 'Mensualmente'];
+    if (partB.q3 >= 0 && partB.q3 < freqOptions.length) {
+      details.push({
+        question: '3. ¿Con qué frecuencia ha padecido estas situaciones en su trabajo?',
+        answer: freqOptions[partB.q3]
+      });
+    }
+    
+    // Q4: ¿Desde cuándo?
+    const durationOptions = ['Algunos días', 'Semanas', 'Meses', 'Años'];
+    if (partB.q4 >= 0 && partB.q4 < durationOptions.length) {
+      details.push({
+        question: '4. ¿Desde cuándo se encuentra viviendo este tipo de situaciones en su trabajo?',
+        answer: durationOptions[partB.q4]
+      });
+    }
+    
+    // Q5: ¿Encuentra alguna explicación?
+    details.push({
+      question: '5. ¿Encuentra alguna explicación acerca de los maltratos recibidos?',
+      answer: (partB.q5 === 0 ? 'Sí' : 'No') + (partB.q5Reason ? `: ${partB.q5Reason}` : '')
+    });
+    
+    // Q6: ¿Ha pedido explicación?
+    details.push({
+      question: '6. ¿Ha pedido alguna explicación al respecto?',
+      answer: (partB.q6 === 0 ? 'Sí' : 'No') + (partB.q6Explanation ? `. Explicación recibida: ${partB.q6Explanation}` : '')
+    });
+    
+    // Q7: ¿Qué desearía como desenlace? (múltiple)
+    const outcomeOptions = [
+      'Lograr comprensión',
+      'Que cese la agresión',
+      'Irse de la empresa',
+      'Cobrar una indemnización',
+      'Que no lo molesten más',
+      'Realizar un juicio',
+      'Que su hostigador reciba un castigo',
+      'Que todo vuelva a ser como antes',
+      'Poder trabajar en su puesto'
+    ];
+    if (partB.q7 && partB.q7.length > 0) {
+      const selected = partB.q7.map((idx: number) => outcomeOptions[idx] || '').filter(Boolean);
+      details.push({
+        question: '7. ¿Qué desearía usted como desenlace de esta situación?',
+        answer: selected.join(', ')
+      });
+    }
+    
+    // Q8: ¿Se siente ocupado pensando en estas situaciones?
+    details.push({
+      question: '8. ¿Al salir de su trabajo y/o llegar a su casa se siente tan ocupado pensando en estas situaciones que no puede hacer otra actividad?',
+      answer: partB.q8 === 0 ? 'Sí' : 'No'
+    });
+    
+    // Q9: ¿Considera que las situaciones se iniciaron por algo que Ud. realizó?
+    details.push({
+      question: '9. ¿Considera que las situaciones de hostigamiento se han iniciado por algo que Ud. realizó?',
+      answer: partB.q9 === 0 ? 'Sí' : 'No'
+    });
+    
+    // Q10: ¿Ha sentido miedo de quedarse sin trabajo?
+    details.push({
+      question: '10. ¿Ha sentido miedo de quedarse sin trabajo a causa de estas situaciones?',
+      answer: partB.q10 === 0 ? 'Sí' : 'No'
+    });
+    
+    // Q11: Características de la persona que hostiga
+    const sexOptions = ['Masculino', 'Femenino'];
+    const ageOptions = ['Mayor que Ud.', 'Igual que Ud.', 'Menor que Ud.'];
+    const positionOptions = ['Superior al suyo', 'Igual al suyo', 'Inferior al suyo'];
+    const seniorityOptions = ['Mayor a la suya', 'Igual a la suya', 'Menor a la suya'];
+    const behaviorOptions = ['Sólo con Ud.', 'Con otras personas de su entorno laboral'];
+    const actuationOptions = ['Individual', 'En grupo', 'Ambas'];
+    
+    if (partB.q11a >= 0 && partB.q11a < sexOptions.length) {
+      details.push({
+        question: '11a. Sexo de quien hostiga',
+        answer: sexOptions[partB.q11a]
+      });
+    }
+    
+    if (partB.q11b >= 0 && partB.q11b < ageOptions.length) {
+      details.push({
+        question: '11b. Con relación a la edad es',
+        answer: ageOptions[partB.q11b]
+      });
+    }
+    
+    if (partB.q11c >= 0 && partB.q11c < positionOptions.length) {
+      details.push({
+        question: '11c. Desempeña un cargo',
+        answer: positionOptions[partB.q11c]
+      });
+    }
+    
+    if (partB.q11d >= 0 && partB.q11d < seniorityOptions.length) {
+      details.push({
+        question: '11d. La antigüedad en el trabajo es',
+        answer: seniorityOptions[partB.q11d]
+      });
+    }
+    
+    if (partB.q11e >= 0 && partB.q11e < behaviorOptions.length) {
+      details.push({
+        question: '11e. Por lo que Ud. conoce, se comporta así',
+        answer: behaviorOptions[partB.q11e]
+      });
+    }
+    
+    if (partB.q11f >= 0 && partB.q11f < actuationOptions.length) {
+      details.push({
+        question: '11f. Actúa de manera',
+        answer: actuationOptions[partB.q11f]
+      });
+    }
+    
     return details;
   }
 
@@ -555,6 +725,75 @@ export class ReportesComponent implements OnInit {
           : 'Sin respuesta.';
       })
     }));
+  }
+
+  get ihlAnswerDetailsComparative(): { situacion: number; frequencies: string[]; discomforts: string[]; freqScores: number[]; discomfortScores: number[]; totalScores: number[] }[] {
+    const attempts = this.selectedPatientAttempts;
+    if (!attempts.length || attempts[0].testType !== 'IHL') { return []; }
+    
+    const itemCount = 63;
+    const specialQuestions = [10, 24, 11, 21, 43, 52, 20];
+    const details: { situacion: number; frequencies: string[]; discomforts: string[]; freqScores: number[]; discomfortScores: number[]; totalScores: number[] }[] = [];
+    
+    for (let i = 0; i < itemCount; i++) {
+      const questionNumber = i + 1;
+      const isSpecial = specialQuestions.includes(questionNumber);
+      
+      const frequencies: string[] = [];
+      const discomforts: string[] = [];
+      const freqScores: number[] = [];
+      const discomfortScores: number[] = [];
+      const totalScores: number[] = [];
+      
+      attempts.forEach((attempt) => {
+        // Frecuencia
+        const freqScore = attempt.respuestas?.[i] ?? -1;
+        const freqIndex = freqScore >= 0 ? 4 - freqScore : -1;
+        frequencies.push(
+          freqIndex >= 0 && freqIndex < this.IHL_PART_A_FREQUENCY.length
+            ? this.IHL_PART_A_FREQUENCY[freqIndex]
+            : 'Sin respuesta'
+        );
+        
+        let freqPoints = 0;
+        if (freqScore >= 0) {
+          if (isSpecial) {
+            if (freqScore >= 3) freqPoints = 4;
+            else if (freqScore >= 1) freqPoints = 3;
+            else freqPoints = 0;
+          } else {
+            freqPoints = freqScore;
+          }
+        }
+        freqScores.push(freqPoints);
+        
+        // Malestar
+        const discomfortScore = attempt.respuestas?.[itemCount + i] ?? -1;
+        const discomfortIndex = discomfortScore >= 0 ? 3 - discomfortScore : -1;
+        discomforts.push(
+          discomfortIndex >= 0 && discomfortIndex < this.IHL_PART_A_DISCOMFORT.length
+            ? this.IHL_PART_A_DISCOMFORT[discomfortIndex]
+            : 'Sin respuesta'
+        );
+        
+        const discomfortPoints = discomfortScore >= 0 ? discomfortScore : 0;
+        discomfortScores.push(discomfortPoints);
+        
+        // Total (frecuencia × malestar)
+        totalScores.push(freqPoints * discomfortPoints);
+      });
+      
+      details.push({
+        situacion: questionNumber,
+        frequencies,
+        discomforts,
+        freqScores,
+        discomfortScores,
+        totalScores
+      });
+    }
+    
+    return details;
   }
 
   get storedAnswerDetailsComparative(): { section: string; answers: string[] }[] {
