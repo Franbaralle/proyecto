@@ -6,6 +6,7 @@ import { ReportesStateService } from '../../services/reportes-state.service';
 import { ReportesAuthService } from '../../services/reportes-auth.service';
 import { AVAILABLE_TESTS, PacienteProfile, PacienteProfileService, PsicologoProfile } from '../../services/paciente-profile.service';
 import { BAI_ITEMS } from '../../services/bai-data.service';
+import { IhlPartBAnswers } from '../../services/ihl-data.service';
 
 interface BdiSection {
   title: string;
@@ -54,6 +55,8 @@ export interface PatientAnalysis {
   styleUrls: ['./reportes.component.css']
 })
 export class ReportesComponent implements OnInit {
+    selectedTestFilter: string | null = null; // null = todos, 'BDI-II' | 'BAI' | 'IHL'
+
     readonly sections: BdiSection[] = [
       { title: 'Tristeza', options: ['No me siento triste.', 'Me siento triste gran parte del tiempo.', 'Me siento triste todo el tiempo.', 'Me siento tan triste o soy tan infeliz que no puedo soportarlo.'] },
       { title: 'Pesimismo', options: ['No estoy desalentado de mi futuro.', 'Me siento más desalentado respecto de mi futuro que lo que solía estarlo.', 'No espero que las cosas funcionen para mí.', 'Siento que no hay esperanza para mi futuro y que sólo puede empeorar.'] },
@@ -149,6 +152,35 @@ export class ReportesComponent implements OnInit {
   get isDiegoSession(): boolean { return this.authService.isDiegoSession; }
   get isAuthorized(): boolean { return this.authService.isAuthorized; }
 
+  getTestLabel(testType: string): string {
+    if (testType === 'BDI-II') { return 'Depresión (BDI-II)'; }
+    if (testType === 'BAI') { return 'Ansiedad (BAI)'; }
+    if (testType === 'IHL') { return 'Hostigamiento Laboral (IHL)'; }
+    return this.availableTests.find((t) => t.id === testType)?.nombre ?? testType;
+  }
+    getResultLevel(result: StoredBdiResult): string {
+      if (result.nivelDepresion && result.nivelDepresion.trim()) {
+        return result.nivelDepresion;
+      }
+      const score = result.puntajeTotal;
+      if (result.testType === 'IHL') {
+        if (score >= 200) return 'HOSTIGAMIENTO GRAVE';
+        if (score >= 130) return 'HOSTIGAMIENTO MODERADO';
+        if (score >= 60) return 'HOSTIGAMIENTO LEVE';
+        return 'NO HAY HOSTIGAMIENTO';
+      } else if (result.testType === 'BAI') {
+        if (score <= 7) return 'ANSIEDAD MÍNIMA';
+        if (score <= 15) return 'ANSIEDAD LEVE';
+        if (score <= 25) return 'ANSIEDAD MODERADA';
+        return 'ANSIEDAD GRAVE';
+      } else {
+        if (score <= 13) return 'DEPRESIÓN MÍNIMA';
+        if (score <= 19) return 'DEPRESIÓN LEVE';
+        if (score <= 28) return 'DEPRESIÓN MODERADA';
+        return 'DEPRESIÓN GRAVE';
+      }
+    }
+
   get selectedPatientKey(): string | null { return this.state.selectedPatientKey; }
   set selectedPatientKey(v: string | null) { this.state.selectedPatientKey = v; }
   get selectedPatientName(): string { return this.state.selectedPatientName; }
@@ -204,6 +236,7 @@ export class ReportesComponent implements OnInit {
     this.selectedPatientKey = summary.patientKey;
     this.selectedPatientName = summary.name;
     this.selectedResult = null;
+    this.selectedTestFilter = null;
     this.showReevaluationForm = false;
     this.reevaluationMessage = '';
     this.reevaluationError = '';
@@ -226,10 +259,16 @@ export class ReportesComponent implements OnInit {
     this.reevaluationReason = '';
   }
 
+  filterByTest(testType: string | null): void {
+    this.selectedTestFilter = this.selectedTestFilter === testType ? null : testType;
+    this.rebuildCharts();
+  }
+
   clearPatientSelection(): void {
     this.selectedPatientKey = null;
     this.selectedPatientName = '';
     this.selectedResult = null;
+    this.selectedTestFilter = null;
     this.showReevaluationForm = false;
     this.reevaluationMessage = '';
     this.patientProfile = null;
@@ -345,7 +384,7 @@ export class ReportesComponent implements OnInit {
         });
       }
       const testLabels = selectedTypes
-        .map((tt) => tt === 'BDI-II' ? 'Depresión (BDI-II)' : 'Ansiedad (BAI)')
+        .map((tt) => this.getTestLabel(tt))
         .join(' y ');
       this.reevaluationMessage = `Reevaluación habilitada para ${patientName} — ${testLabels}. El paciente podrá completar el test nuevamente.`;
       this.showReevaluationForm = false;
@@ -461,6 +500,35 @@ export class ReportesComponent implements OnInit {
   }
 
   private readonly BAI_OPTION_LABELS = ['En absoluto', 'Levemente', 'Moderadamente', 'Severamente'];
+  private readonly IHL_PART_A_FREQUENCY = ['Todos los días', 'Algunas veces a la semana', 'Algunas veces al mes', 'Algunas veces al año', 'Nunca'];
+  private readonly IHL_PART_A_DISCOMFORT = ['Alto', 'Medio', 'Bajo'];
+
+  get ihlAnswerDetails(): StoredAnswerDetail[] {
+    if (!this.selectedResult || this.selectedResult.testType !== 'IHL') { return []; }
+    const details: StoredAnswerDetail[] = [];
+    const respuestas = this.selectedResult.respuestas || [];
+    const itemCount = 63;
+
+    for (let i = 0; i < itemCount; i++) {
+      const freqScore = respuestas[i] ?? -1;
+      const discomfortScore = respuestas[itemCount + i] ?? -1;
+      const freqText = freqScore >= 0 && freqScore < this.IHL_PART_A_FREQUENCY.length
+        ? this.IHL_PART_A_FREQUENCY[freqScore]
+        : 'Sin respuesta';
+      const discomfortText = discomfortScore >= 0 && discomfortScore < this.IHL_PART_A_DISCOMFORT.length
+        ? this.IHL_PART_A_DISCOMFORT[discomfortScore]
+        : 'Sin respuesta';
+      details.push({
+        section: `Situación ${i + 1} - Frecuencia`,
+        optionText: freqText
+      });
+      details.push({
+        section: `Situación ${i + 1} - Malestar`,
+        optionText: discomfortText
+      });
+    }
+    return details;
+  }
 
   get baiAnswerDetails(): StoredAnswerDetail[] {
     if (!this.selectedResult || this.selectedResult.testType !== 'BAI') { return []; }
@@ -669,7 +737,10 @@ export class ReportesComponent implements OnInit {
     if (!r) { return null; }
 
     const name = r.paciente?.nombreApellidos || 'El/la paciente';
-    const testLabel = r.testType === 'BAI' ? 'BAI' : 'BDI-II';
+    let testLabel = 'BDI-II';
+    if (r.testType === 'BAI') { testLabel = 'BAI'; }
+    if (r.testType === 'IHL') { testLabel = 'IHL'; }
+
     const analysis: PatientAnalysis = {
       estadoActual: `${name} obtuvo ${r.puntajeTotal} puntos en el ${testLabel}, correspondiente a ${r.nivelDepresion.toLowerCase()}.`,
       evolucionBdi: null,
@@ -682,7 +753,7 @@ export class ReportesComponent implements OnInit {
       hayRiesgoAlto: false
     };
 
-    // Ítems con mayor sintomatología
+    // Ítems con mayor sintomatología - solo para BDI-II y BAI
     if ((!r.testType || r.testType === 'BDI-II') && r.respuestas) {
       this.sections.forEach((section, idx) => {
         const score = r.respuestas?.[idx] ?? 0;
@@ -698,14 +769,24 @@ export class ReportesComponent implements OnInit {
         }
       });
     }
+    // IHL no muestra items individuales en análisis (solo en tabla de respuestas)
 
     // Triangulación: usar solo la del propio reporte (BDI-II), nunca de otro test
     if (!r.testType || r.testType === 'BDI-II') {
       analysis.triangulacion = (r.triangulacion || []).filter((t) => t.detectado);
     }
 
-    // Riesgo
-    analysis.hayRiesgoAlto = r.puntajeTotal >= (r.testType === 'BAI' ? 26 : 29);
+    // Riesgo - umbrales diferentes por test
+    if (r.testType === 'BAI') {
+      analysis.hayRiesgoAlto = r.puntajeTotal >= 26;
+    } else if (r.testType === 'IHL') {
+      // Para IHL: puntaje alto si supera 200 (puntos máximos teóricos: 63*5 = 315)
+      analysis.hayRiesgoAlto = r.puntajeTotal >= 200;
+    } else {
+      // BDI-II
+      analysis.hayRiesgoAlto = r.puntajeTotal >= 29;
+    }
+    
     analysis.recomendacion = analysis.hayRiesgoAlto
       ? 'Por la severidad actual, se sugiere evaluación clínica prioritaria y seguimiento cercano.'
       : 'Se recomienda integrar estos resultados con entrevista clínica y contexto longitudinal.';
@@ -738,6 +819,10 @@ export class ReportesComponent implements OnInit {
     return this.selectedPatientAllResults.filter((r) => r.testType === 'BAI');
   }
 
+  get allIhlResults(): StoredBdiResult[] {
+    return this.selectedPatientAllResults.filter((r) => r.testType === 'IHL');
+  }
+
   get latestBdiResult(): StoredBdiResult | null {
     const all = this.allBdiResults;
     return all.length ? all[all.length - 1] : null;
@@ -745,6 +830,11 @@ export class ReportesComponent implements OnInit {
 
   get latestBaiResult(): StoredBdiResult | null {
     const all = this.allBaiResults;
+    return all.length ? all[all.length - 1] : null;
+  }
+
+  get latestIhlResult(): StoredBdiResult | null {
+    const all = this.allIhlResults;
     return all.length ? all[all.length - 1] : null;
   }
 
@@ -814,10 +904,12 @@ export class ReportesComponent implements OnInit {
     const patientName = this.selectedPatientName;
     const bdi = this.latestBdiResult;
     const bai = this.latestBaiResult;
+    const ihl = this.latestIhlResult;
     const bdiAll = this.allBdiResults;
     const baiAll = this.allBaiResults;
+    const ihlAll = this.allIhlResults;
 
-    if (!bdi && !bai) { return null; }
+    if (!bdi && !bai && !ihl) { return null; }
 
     const analysis: PatientAnalysis = {
       estadoActual: '',
@@ -831,13 +923,14 @@ export class ReportesComponent implements OnInit {
       hayRiesgoAlto: false
     };
 
-    // Estado actual
-    if (bdi && bai) {
-      analysis.estadoActual = `${patientName} presenta ${bdi.nivelDepresion.toLowerCase()} según el BDI-II (${bdi.puntajeTotal} pts.) y ${bai.nivelDepresion.toLowerCase()} según el BAI (${bai.puntajeTotal} pts.).`;
-    } else if (bdi) {
-      analysis.estadoActual = `${patientName} presenta ${bdi.nivelDepresion.toLowerCase()} según el BDI-II (${bdi.puntajeTotal} pts.). El BAI aún no ha sido evaluado.`;
-    } else if (bai) {
-      analysis.estadoActual = `${patientName} presenta ${bai.nivelDepresion.toLowerCase()} según el BAI (${bai.puntajeTotal} pts.). El BDI-II aún no ha sido evaluado.`;
+    // Estado actual - incluir todos los tests disponibles
+    const estadoParts: string[] = [];
+    if (bdi) { estadoParts.push(`${bdi.nivelDepresion.toLowerCase()} según el BDI-II (${bdi.puntajeTotal} pts.)`); }
+    if (bai) { estadoParts.push(`${bai.nivelDepresion.toLowerCase()} según el BAI (${bai.puntajeTotal} pts.)`); }
+    if (ihl) { estadoParts.push(`${ihl.nivelDepresion.toLowerCase()} según el IHL (${ihl.puntajeTotal} pts.)`); }
+
+    if (estadoParts.length > 0) {
+      analysis.estadoActual = `${patientName} presenta ${estadoParts.join(' y ')}.`;
     }
 
     // Evolucion BDI
@@ -878,7 +971,7 @@ export class ReportesComponent implements OnInit {
       }
     }
 
-    // Items BDI con cambio notable
+    // Items BDI con cambio notable - solo si hay múltiples registros de BDI
     if (bdiAll.length > 1) {
       const allBdiDeltas = bdiAll.slice(1).map((r, i) => r.puntajeTotal - bdiAll[i].puntajeTotal);
       const isBdiFluctuating = allBdiDeltas.some((d) => d > 0) && allBdiDeltas.some((d) => d < 0);
@@ -901,10 +994,11 @@ export class ReportesComponent implements OnInit {
     // Triangulacion
     analysis.triangulacion = this.patientTriangulationRules;
 
-    // Riesgo
+    // Riesgo - incluir umbrales para IHL
     const bdiScore = bdi?.puntajeTotal ?? 0;
     const baiScore = bai?.puntajeTotal ?? 0;
-    analysis.hayRiesgoAlto = bdiScore >= 29 || baiScore >= 26;
+    const ihlScore = ihl?.puntajeTotal ?? 0;
+    analysis.hayRiesgoAlto = (bdi ? bdiScore >= 29 : false) || (bai ? baiScore >= 26 : false) || (ihl ? ihlScore >= 200 : false);
     analysis.recomendacion = analysis.hayRiesgoAlto
       ? 'Por la severidad actual, se sugiere evaluación clínica prioritaria y seguimiento cercano.'
       : 'Se recomienda integrar estos resultados con entrevista clínica y evolución longitudinal.';
@@ -968,9 +1062,19 @@ export class ReportesComponent implements OnInit {
 
   private rebuildCharts(): void {
     const rounds = this.patientRounds;
-    const testTypes = this.testTypesPresent;
+    let testTypes = this.testTypesPresent;
 
     if (!rounds.length) {
+      this.lineChartData = { labels: [], datasets: [] };
+      return;
+    }
+
+    // Filtrar por test seleccionado si existe
+    if (this.selectedTestFilter) {
+      testTypes = testTypes.filter(tt => tt === this.selectedTestFilter);
+    }
+
+    if (!testTypes.length) {
       this.lineChartData = { labels: [], datasets: [] };
       return;
     }
@@ -979,11 +1083,13 @@ export class ReportesComponent implements OnInit {
 
     const colorMap: Record<string, string> = {
       'BDI-II': '#e91e8c',
-      'BAI': '#f5c842'
+      'BAI': '#f5c842',
+      'IHL': '#3498db'
     };
     const labelMap: Record<string, string> = {
       'BDI-II': 'Depresión (BDI-II)',
-      'BAI': 'Ansiedad (BAI)'
+      'BAI': 'Ansiedad (BAI)',
+      'IHL': 'Hostigamiento Laboral (IHL)'
     };
 
     const datasets = testTypes.map((tt) => {

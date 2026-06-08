@@ -4,6 +4,8 @@ import { BdiDataService } from '../../services/bdi-data.service';
 import { BdiSubmissionService } from '../../services/bdi-submission.service';
 import { BaiDataService } from '../../services/bai-data.service';
 import { BaiSubmissionService } from '../../services/bai-submission.service';
+import { IhlDataService } from '../../services/ihl-data.service';
+import { IhlSubmissionService } from '../../services/ihl-submission.service';
 import { PendingResultsService } from '../../services/pending-results.service';
 import { ReportesAuthService } from '../../services/reportes-auth.service';
 import { PatientAuthService } from '../../services/patient-auth.service';
@@ -40,6 +42,15 @@ export class SeleccionTestComponent implements OnInit {
       nombre: 'Inventario de Ansiedad de Beck (BAI)',
       descripcion: 'Evalúa la presencia y severidad de síntomas de ansiedad en adultos. Consta de 21 ítems.',
       ruta: '/ansiedad',
+      yaCompletado: false,
+      pendienteLocal: false,
+      cargando: true
+    },
+    {
+      id: 'IHL',
+      nombre: 'Inventario de Hostigamiento Laboral (IHL)',
+      descripcion: 'Evalúa la presencia de hostigamiento psicológico o moral en el ámbito laboral.',
+      ruta: '/ihl',
       yaCompletado: false,
       pendienteLocal: false,
       cargando: true
@@ -90,6 +101,8 @@ export class SeleccionTestComponent implements OnInit {
     private readonly baiData: BaiDataService,
     private readonly submissionService: BdiSubmissionService,
     private readonly baiSubmissionService: BaiSubmissionService,
+    private readonly ihlData: IhlDataService,
+    private readonly ihlSubmissionService: IhlSubmissionService,
     private readonly pendingService: PendingResultsService,
     private readonly authService: ReportesAuthService,
     private readonly patientAuth: PatientAuthService,
@@ -129,6 +142,12 @@ export class SeleccionTestComponent implements OnInit {
         this.baiData.professional.profesional = profile.psicologoNombre;
         this.baiData.professional.email = profile.psicologoEmail;
         this.baiData.saveSession();
+
+        this.ihlData.patient = { ...this.bdiData.patient };
+        this.ihlData.professional.profesional = profile.psicologoNombre;
+        this.ihlData.professional.email = profile.psicologoEmail;
+        this.ihlData.saveSession();
+
         this.tests = this.allTests
           .map((t) => ({ ...t }))
           .filter((t) => profile.testsHabilitados.includes(t.id));
@@ -149,8 +168,17 @@ export class SeleccionTestComponent implements OnInit {
       try {
         test.pendienteLocal = this.pendingService.isPending(test.id);
         // yaCompletado = ya enviado a Firestore (no solo pendiente local)
-        test.yaCompletado = !test.pendienteLocal
-          && await this.submissionService.hasCurrentAttempt(patientName, test.id, patientEmail);
+        let alreadySent = false;
+        if (!test.pendienteLocal) {
+          if (test.id === 'BDI-II') {
+            alreadySent = await this.submissionService.hasCurrentAttempt(patientName, test.id, patientEmail);
+          } else if (test.id === 'BAI') {
+            alreadySent = await this.baiSubmissionService.hasCurrentAttempt(patientName, test.id, patientEmail);
+          } else if (test.id === 'IHL') {
+            alreadySent = await this.ihlSubmissionService.hasCurrentAttempt(patientName, test.id, patientEmail);
+          }
+        }
+        test.yaCompletado = !test.pendienteLocal && alreadySent;
       } catch {
         test.yaCompletado = false;
         test.pendienteLocal = false;
@@ -174,6 +202,9 @@ export class SeleccionTestComponent implements OnInit {
         } else if (test.id === 'BAI') {
           await this.baiSubmissionService.submitCurrentResult();
           this.baiData.clearSession();
+        } else if (test.id === 'IHL') {
+          await this.ihlSubmissionService.submitCurrentResult();
+          this.ihlData.clearSession();
         }
         this.pendingService.clearPending(test.id);
         test.pendienteLocal = false;
