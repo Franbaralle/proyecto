@@ -226,6 +226,36 @@ h2 {
 	margin: 0 0 0.75rem;
 }
 
+.test-filters {
+	display: flex;
+	gap: 0.5rem;
+	margin-bottom: 0.75rem;
+	flex-wrap: wrap;
+}
+
+.filter-btn {
+	padding: 0.35rem 0.75rem;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	background: #f9f9f9;
+	color: #555;
+	font-size: 0.85rem;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+	background: #efefef;
+	border-color: #999;
+}
+
+.filter-btn--active {
+	background: #e91e8c;
+	color: #fff;
+	border-color: #e91e8c;
+	font-weight: 600;
+}
+
 .chart-card canvas {
 	width: 100% !important;
 	height: 420px !important;

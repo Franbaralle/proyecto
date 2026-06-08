@@ -12,6 +12,7 @@ import { RegistroComponent } from './pages/registro/registro.component';
 import { LoginPacienteComponent } from './pages/login-paciente/login-paciente.component';
 import { RegistroPsicologoComponent } from './pages/registro-psicologo/registro-psicologo.component';
 import { AnsiedadComponent } from './pages/ansiedad/ansiedad.component';
+import { IhlComponent } from './pages/ihl/ihl.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'acceso-reportes', pathMatch: 'full' },
@@ -22,6 +23,7 @@ const routes: Routes = [
   { path: 'seleccion-test', component: SeleccionTestComponent, canActivate: [SessionAuthGuard] },
   { path: 'inventario', component: InventarioComponent, canActivate: [SessionAuthGuard, InventarioAccessGuard] },
   { path: 'ansiedad', component: AnsiedadComponent, canActivate: [SessionAuthGuard, InventarioAccessGuard] },
+  { path: 'ihl', component: IhlComponent, canActivate: [SessionAuthGuard, InventarioAccessGuard] },
   { path: 'acceso-reportes', component: AccesoReportesComponent },
   { path: 'reportes', component: ReportesComponent, canActivate: [ReportesAuthGuard] },
   { path: '**', redirectTo: 'acceso-reportes' }

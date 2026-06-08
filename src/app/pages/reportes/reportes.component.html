@@ -125,7 +125,7 @@
 							<th class="th-round">Reporte</th>
 							<th>Fecha</th>
 							<th *ngFor="let tt of testTypesPresent">
-								{{ tt === 'BDI-II' ? 'Depresión (BDI-II)' : 'Ansiedad (BAI)' }}
+								{{ getTestLabel(tt) }}
 							</th>
 						</tr>
 					</thead>
@@ -141,7 +141,7 @@
 										(click)="selectRoundResult(r)"
 										[class.btn-round-detail--active]="selectedResult?.id === r.id"
 									>
-										{{ r.puntajeTotal }} pts. &mdash; {{ r.nivelDepresion }}
+										{{ r.puntajeTotal }} pts. &mdash; {{ getResultLevel(r) }}
 									</button>
 								</ng-container>
 								<ng-template #noRes>
@@ -157,6 +157,39 @@
 		<section class="charts-grid" *ngIf="patientRounds.length > 1">
 			<section class="chart-card">
 				<h3>Evolución de puntajes</h3>
+				<div class="test-filters">
+					<button 
+						type="button" 
+						class="filter-btn" 
+						[class.filter-btn--active]="selectedTestFilter === null"
+						(click)="filterByTest(null)">
+						Todos
+					</button>
+					<button 
+						type="button" 
+						class="filter-btn" 
+						[class.filter-btn--active]="selectedTestFilter === 'BDI-II'"
+						(click)="filterByTest('BDI-II')"
+						*ngIf="testTypesPresent.includes('BDI-II')">
+						BDI-II
+					</button>
+					<button 
+						type="button" 
+						class="filter-btn" 
+						[class.filter-btn--active]="selectedTestFilter === 'BAI'"
+						(click)="filterByTest('BAI')"
+						*ngIf="testTypesPresent.includes('BAI')">
+						BAI
+					</button>
+					<button 
+						type="button" 
+						class="filter-btn" 
+						[class.filter-btn--active]="selectedTestFilter === 'IHL'"
+						(click)="filterByTest('IHL')"
+						*ngIf="testTypesPresent.includes('IHL')">
+						IHL
+					</button>
+				</div>
 				<canvas baseChart [type]="'line'" [data]="lineChartData" [options]="lineChartOptions"></canvas>
 			</section>
 		</section>
@@ -314,6 +347,39 @@
 					</table>
 				</div>
 			</section>
+
+			<section class="respuestas" *ngIf="selectedResult.testType === 'IHL'">
+				<h3>Respuestas Parte A - Situaciones</h3>
+
+				<!-- Una sola evaluación: lista simple -->
+				<ul *ngIf="selectedPatientAttempts.length <= 1">
+					<li *ngFor="let item of ihlAnswerDetails">
+						<strong>{{ item.section }}</strong>
+						<p>{{ item.optionText }}</p>
+					</li>
+				</ul>
+
+				<!-- Múltiples evaluaciones: tabla comparativa -->
+				<div class="respuestas-tabla-wrapper" *ngIf="selectedPatientAttempts.length > 1">
+					<table class="respuestas-tabla">
+						<thead>
+							<tr>
+								<th>Situación</th>
+								<th *ngFor="let a of selectedPatientAttempts; let i = index">
+									Intento {{ i + 1 }}<br/>
+									<small>{{ shortDate(a.creadoEn) }}</small>
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr *ngFor="let item of ihlAnswerDetails">
+								<td class="seccion-nombre">{{ item.section }}</td>
+								<td>{{ item.optionText }}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
 		</ng-container>
 
 		<section class="reevaluation-panel" *ngIf="isAuthorized">
@@ -338,7 +404,7 @@
 								[checked]="reevaluationSelectedTests[tt]"
 								(change)="reevaluationSelectedTests[tt] = !reevaluationSelectedTests[tt]"
 							/>
-							{{ tt === 'BDI-II' ? 'Depresión (BDI-II)' : 'Ansiedad (BAI)' }}
+							{{ getTestLabel(tt) }}
 						</label>
 					</li>
 				</ul>

@@ -1,0 +1,160 @@
+.ihl-container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+.ihl-intro p {
+  margin: 0.75rem 0;
+  line-height: 1.5;
+}
+
+.ihl-intro h3 {
+  margin-top: 1rem;
+}
+
+.ihl-table-wrapper {
+  overflow-x: auto;
+  margin-top: 1.5rem;
+}
+
+.ihl-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1200px;
+}
+
+.ihl-table th,
+.ihl-table td {
+  border: 1px solid #d3d3d3;
+  padding: 0.5rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.ihl-table th {
+  background: #f1f1f1;
+  font-weight: 600;
+}
+
+.ihl-table .discomfort-header {
+  color: #111;
+  font-weight: 700;
+}
+
+.ihl-table .discomfort-0 {
+  background: #e74c3c;
+  color: white;
+}
+
+.ihl-table .discomfort-1 {
+  background: #f1c40f;
+  color: #111;
+}
+
+.ihl-table .discomfort-2 {
+  background: #2ecc71;
+  color: white;
+}
+
+.ihl-table td.situation {
+  text-align: left;
+  min-width: 300px;
+}
+
+.ihl-table tr.answered {
+  background: #f9fff8;
+}
+
+.submit-section {
+  margin-top: 1.25rem;
+}
+
+.submit-btn,
+.btn-volver {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: #1e73be;
+  color: white;
+  border: none;
+  border-radius: 0.35rem;
+  cursor: pointer;
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submit-success,
+.submit-error {
+  margin-top: 0.75rem;
+}
+
+.submit-success {
+  color: #1b7a3f;
+}
+
+.submit-error {
+  color: #b00020;
+}
+
+.ihl-partb {
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px solid #d3d3d3;
+  border-radius: 0.5rem;
+  background: #fafafa;
+}
+
+.ihl-partb h2 {
+  margin-bottom: 0.75rem;
+}
+
+.question-block,
+.sub-question {
+  margin-bottom: 1rem;
+}
+
+.question-block p,
+.sub-question p {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+.question-block label,
+.sub-question label {
+  display: block;
+  margin-bottom: 0.35rem;
+  cursor: pointer;
+}
+
+.question-block textarea {
+  width: 100%;
+  min-height: 4rem;
+  resize: vertical;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.35rem;
+}
+
+.question-block.disabled,
+.question-block.disabled input,
+.question-block.disabled textarea {
+  opacity: 0.5;
+}
+
+.question-block.disabled label {
+  cursor: not-allowed;
+}
+
+.full-width {
+  margin-top: 0.5rem;
+}
+
+.final-note {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #333;
+}

@@ -14,7 +14,8 @@ import { CryptoService } from './crypto.service';
 
 export const AVAILABLE_TESTS: { id: string; nombre: string }[] = [
   { id: 'BDI-II', nombre: 'Inventario de Depresión de Beck (BDI-II)' },
-  { id: 'BAI', nombre: 'Inventario de Ansiedad de Beck (BAI)' }
+  { id: 'BAI', nombre: 'Inventario de Ansiedad de Beck (BAI)' },
+  { id: 'IHL', nombre: 'Inventario de Hostigamiento Laboral (IHL)' }
 ];
 
 export interface PacienteProfile {

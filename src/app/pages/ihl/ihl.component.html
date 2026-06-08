@@ -1,0 +1,184 @@
+<section class="ihl-container">
+  <h2>{{ title }}</h2>
+
+  <div class="ihl-intro">
+    <p>En los lugares de trabajo pueden sucederse muchas situaciones estresantes, entre ellas está la denominada <strong>Hostigamiento Psicológico/Moral Laboral</strong>.</p>
+    <p>El hostigamiento psicológico/moral laboral consiste en acciones de violencia psicológica, de manera reiterada (al menos una vez por semana) y durante un período prolongado de tiempo. Es ejercido por una o varias personas hacia otra. El objetivo es causar malestar, incomodar, y/o eliminar del lugar de trabajo a la persona elegida como víctima.</p>
+    <h3>INSTRUCCIONES</h3>
+    <p>Teniendo en cuenta este tipo de situaciones, le solicitamos que lea las frases que se presentan a continuación y que marque con una cruz la opción que considere más adecuada para usted.</p>
+    <p>La frecuencia se refiere al grado de reiteración, repetición con la que ocurren las situaciones planteadas y el malestar se refiere al grado en que le afectan dichas situaciones.</p>
+    <p>Por favor responda a todas las situaciones planteadas; si considera que alguna no se aplica a su contexto, marque la opción <strong>Nunca</strong>.</p>
+  </div>
+
+  <div class="ihl-table-wrapper">
+    <table class="ihl-table">
+      <thead>
+        <tr>
+          <th rowspan="2">SITUACIÓN</th>
+          <th colspan="5">FRECUENCIA</th>
+          <th colspan="3">MALESTAR</th>
+        </tr>
+        <tr>
+          <th *ngFor="let label of frequencyOptions">{{ label }}</th>
+          <th *ngFor="let label of discomfortOptions; let j = index" [ngClass]="'discomfort-header discomfort-' + j">{{ label }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of items; let i = index" [class.answered]="frequencyResponse(i) >= 0 && discomfortResponse(i) >= 0">
+          <td class="situation"><strong>{{ i + 1 }}.</strong> {{ item }}</td>
+
+          <td *ngFor="let option of frequencyOptions; let j = index">
+            <input
+              type="radio"
+              [name]="'frequency-' + i"
+              [value]="j"
+              [checked]="frequencyResponse(i) === j"
+              (change)="selectFrequency(i, j)"
+            />
+          </td>
+
+          <td *ngFor="let option of discomfortOptions; let j = index">
+            <input
+              type="radio"
+              [name]="'discomfort-' + i"
+              [value]="j"
+              [checked]="discomfortResponse(i) === j"
+              (change)="selectDiscomfort(i, j)"
+            />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section class="ihl-partb">
+    <h2>INVENTARIO DE HOSTIGAMIENTO LABORAL (IHL) - PARTE B</h2>
+    <p>De acuerdo a la definición de Hostigamiento psicológico/moral laboral brindada al comienzo de este inventario, responda las siguientes preguntas marcando con una X la opción elegida.</p>
+
+    <div class="question-block">
+      <p>1) ¿Ha sido testigo de alguna situación de hostigamiento en su trabajo?</p>
+      <label><input type="radio" name="q1" [value]="0" [checked]="partB.q1 === 0" (change)="selectPartBAnswer('q1', 0)" /> Sí</label>
+      <label><input type="radio" name="q1" [value]="1" [checked]="partB.q1 === 1" (change)="selectPartBAnswer('q1', 1)" /> No</label>
+    </div>
+
+    <div class="question-block">
+      <p>2) ¿Considera usted que padece hostigamiento laboral?</p>
+      <label><input type="radio" name="q2" [value]="0" [checked]="partB.q2 === 0" (change)="selectPartBAnswer('q2', 0)" /> Sí (pase a la siguiente pregunta)</label>
+      <label><input type="radio" name="q2" [value]="1" [checked]="partB.q2 === 1" (change)="selectPartBAnswer('q2', 1)" /> No (Aquí finaliza el cuestionario. Muchas gracias)</label>
+    </div>
+
+    <div class="question-block" [class.disabled]="isQuestionnaireDisabled">
+      <p>3) ¿Con qué frecuencia ha padecido estas situaciones en su trabajo?</p>
+      <label *ngFor="let option of partBFrequencyOptions; let idx = index">
+        <input type="radio" name="q3" [value]="idx" [checked]="partB.q3 === idx" (change)="selectPartBAnswer('q3', idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+      </label>
+    </div>
+
+    <div class="question-block" [class.disabled]="isQuestionnaireDisabled">
+      <p>4) ¿Desde cuándo se encuentra viviendo este tipo de situaciones en su trabajo?</p>
+      <label *ngFor="let option of partBDurationOptions; let idx = index">
+        <input type="radio" name="q4" [value]="idx" [checked]="partB.q4 === idx" (change)="selectPartBAnswer('q4', idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+      </label>
+    </div>
+
+    <div class="question-block" [class.disabled]="isQuestionnaireDisabled">
+      <p>5) ¿Encuentra alguna explicación acerca de los maltratos recibidos?</p>
+      <label *ngFor="let option of partBNoYesOptions; let idx = index">
+        <input type="radio" name="q5" [value]="idx" [checked]="partB.q5 === idx" (change)="selectPartBAnswer('q5', idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+      </label>
+      <label class="full-width">¿Cuál?</label>
+      <textarea [disabled]="isQuestionnaireDisabled" [value]="partB.q5Reason" (input)="updatePartBText('q5Reason', $any($event.target).value)"></textarea>
+    </div>
+
+    <div class="question-block" [class.disabled]="isQuestionnaireDisabled">
+      <p>6) ¿Ha pedido alguna explicación al respecto?</p>
+      <label *ngFor="let option of partBNoYesOptions; let idx = index">
+        <input type="radio" name="q6" [value]="idx" [checked]="partB.q6 === idx" (change)="selectPartBAnswer('q6', idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+      </label>
+      <label class="full-width">En caso de haberla recibido descriva brevemente cuál fue:</label>
+      <textarea [disabled]="isQuestionnaireDisabled" [value]="partB.q6Explanation" (input)="updatePartBText('q6Explanation', $any($event.target).value)"></textarea>
+    </div>
+
+    <div class="question-block" [class.disabled]="isQuestionnaireDisabled">
+      <p>7) ¿Qué desearía usted como desenlace de esta situación? (puede marcar más de una opción)</p>
+      <label *ngFor="let option of partBOutcomes; let idx = index">
+        <input type="checkbox" [checked]="isOutcomeChecked(idx)" (change)="toggleOutcome(idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+      </label>
+    </div>
+
+    <div class="question-block" [class.disabled]="isQuestionnaireDisabled">
+      <p>8) ¿Al salir de su trabajo y/o llegar a su casa se siente tan ocupado pensando en estas situaciones de hostigamiento laboral que no puede hacer otra actividad?</p>
+      <label *ngFor="let option of partBYesNoOptions; let idx = index">
+        <input type="radio" name="q8" [value]="idx" [checked]="partB.q8 === idx" (change)="selectPartBAnswer('q8', idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+      </label>
+    </div>
+
+    <div class="question-block" [class.disabled]="isQuestionnaireDisabled">
+      <p>9) ¿Considera que las situaciones de hostigamiento se han iniciado por algo que Ud. realizó?</p>
+      <label *ngFor="let option of partBYesNoOptions; let idx = index">
+        <input type="radio" name="q9" [value]="idx" [checked]="partB.q9 === idx" (change)="selectPartBAnswer('q9', idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+      </label>
+    </div>
+
+    <div class="question-block" [class.disabled]="isQuestionnaireDisabled">
+      <p>10) ¿Ha sentido miedo de quedarse sin trabajo a causa de estas situaciones?</p>
+      <label *ngFor="let option of partBYesNoOptions; let idx = index">
+        <input type="radio" name="q10" [value]="idx" [checked]="partB.q10 === idx" (change)="selectPartBAnswer('q10', idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+      </label>
+    </div>
+
+    <div class="question-block" [class.disabled]="isQuestionnaireDisabled">
+      <p>11) A continuación le pedimos información sobre la principal persona que lo hostiga en su trabajo:</p>
+      <div class="sub-question">
+        <p>a) Sexo:</p>
+        <label *ngFor="let option of partBSexOptions; let idx = index">
+          <input type="radio" name="q11a" [value]="idx" [checked]="partB.q11a === idx" (change)="selectPartBAnswer('q11a', idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+        </label>
+      </div>
+      <div class="sub-question">
+        <p>b) Con relación a la edad es:</p>
+        <label *ngFor="let option of partBAgeRelationOptions; let idx = index">
+          <input type="radio" name="q11b" [value]="idx" [checked]="partB.q11b === idx" (change)="selectPartBAnswer('q11b', idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+        </label>
+      </div>
+      <div class="sub-question">
+        <p>c) Desempeña un cargo:</p>
+        <label *ngFor="let option of partBPositionOptions; let idx = index">
+          <input type="radio" name="q11c" [value]="idx" [checked]="partB.q11c === idx" (change)="selectPartBAnswer('q11c', idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+        </label>
+      </div>
+      <div class="sub-question">
+        <p>d) La antigüedad del trabajo es:</p>
+        <label *ngFor="let option of partBSeniorityOptions; let idx = index">
+          <input type="radio" name="q11d" [value]="idx" [checked]="partB.q11d === idx" (change)="selectPartBAnswer('q11d', idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+        </label>
+      </div>
+      <div class="sub-question">
+        <p>e) Por lo que Ud. conoce, se comporta así:</p>
+        <label *ngFor="let option of partBBehaviorOptions; let idx = index">
+          <input type="radio" name="q11e" [value]="idx" [checked]="partB.q11e === idx" (change)="selectPartBAnswer('q11e', idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+        </label>
+      </div>
+      <div class="sub-question">
+        <p>f) Actúa de manera:</p>
+        <label *ngFor="let option of partBActuationOptions; let idx = index">
+          <input type="radio" name="q11f" [value]="idx" [checked]="partB.q11f === idx" (change)="selectPartBAnswer('q11f', idx)" [disabled]="isQuestionnaireDisabled" /> {{ option }}
+        </label>
+      </div>
+    </div>
+
+    <p class="final-note">Antes de entregar el material, por favor asegúrese de haber contestado todas las situaciones o preguntas que le correspondan.</p>
+  </section>
+
+  <div class="submit-section" *ngIf="!isAuthorized">
+    <button type="button" class="submit-btn" (click)="submitResult()" [disabled]="!canSubmit">
+      {{ isSubmitting ? 'Guardando...' : 'Guardar Resultados' }}
+    </button>
+    <p class="submit-success" *ngIf="submitMessage">{{ submitMessage }}</p>
+    <p class="submit-error" *ngIf="submitError">{{ submitError }}</p>
+  </div>
+
+  <button type="button" class="btn-volver" (click)="volverSeleccion()">
+    Volver a selección de tests
+  </button>
+</section>

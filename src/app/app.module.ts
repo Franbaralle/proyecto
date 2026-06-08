@@ -14,6 +14,7 @@ import { RegistroComponent } from './pages/registro/registro.component';
 import { LoginPacienteComponent } from './pages/login-paciente/login-paciente.component';
 import { RegistroPsicologoComponent } from './pages/registro-psicologo/registro-psicologo.component';
 import { AnsiedadComponent } from './pages/ansiedad/ansiedad.component';
+import { IhlComponent } from './pages/ihl/ihl.component';
 
 @NgModule({
   declarations: [
@@ -26,7 +27,8 @@ import { AnsiedadComponent } from './pages/ansiedad/ansiedad.component';
     RegistroComponent,
     LoginPacienteComponent,
     RegistroPsicologoComponent,
-    AnsiedadComponent
+    AnsiedadComponent,
+    IhlComponent
   ],
   imports: [
     BrowserModule,

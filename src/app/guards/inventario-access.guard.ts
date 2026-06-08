@@ -3,6 +3,9 @@ import { CanActivate, Router, UrlTree, ActivatedRouteSnapshot, RouterStateSnapsh
 import { BdiDataService } from '../services/bdi-data.service';
 import { BaiDataService } from '../services/bai-data.service';
 import { BdiSubmissionService } from '../services/bdi-submission.service';
+import { BaiSubmissionService } from '../services/bai-submission.service';
+import { IhlDataService } from '../services/ihl-data.service';
+import { IhlSubmissionService } from '../services/ihl-submission.service';
 import { ReportesAuthService } from '../services/reportes-auth.service';
 import { PatientAuthService } from '../services/patient-auth.service';
 
@@ -13,7 +16,10 @@ export class InventarioAccessGuard implements CanActivate {
   constructor(
     private readonly bdiData: BdiDataService,
     private readonly baiData: BaiDataService,
+    private readonly ihlData: IhlDataService,
     private readonly submissionService: BdiSubmissionService,
+    private readonly baiSubmissionService: BaiSubmissionService,
+    private readonly ihlSubmissionService: IhlSubmissionService,
     private readonly authService: ReportesAuthService,
     private readonly patientAuth: PatientAuthService,
     private readonly router: Router
@@ -27,8 +33,9 @@ export class InventarioAccessGuard implements CanActivate {
     }
 
     const isAnsiedad = state.url.startsWith('/ansiedad');
-    const testType = isAnsiedad ? 'BAI' : 'BDI-II';
-    const patientData = isAnsiedad ? this.baiData.patient : this.bdiData.patient;
+    const isIhl = state.url.startsWith('/ihl');
+    const testType = isAnsiedad ? 'BAI' : isIhl ? 'IHL' : 'BDI-II';
+    const patientData = isAnsiedad ? this.baiData.patient : isIhl ? this.ihlData.patient : this.bdiData.patient;
     const patientName = patientData.nombreApellidos?.trim();
 
     if (!patientName) {
@@ -42,7 +49,13 @@ export class InventarioAccessGuard implements CanActivate {
       ?? undefined;
 
     try {
-      const yaCompletado = await this.submissionService.hasCurrentAttempt(
+      const submissionService = isAnsiedad
+        ? this.baiSubmissionService
+        : isIhl
+          ? this.ihlSubmissionService
+          : this.submissionService;
+
+      const yaCompletado = await submissionService.hasCurrentAttempt(
         patientName,
         testType,
         patientEmail
