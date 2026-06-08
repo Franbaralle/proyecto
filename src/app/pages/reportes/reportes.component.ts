@@ -441,7 +441,7 @@ export class ReportesComponent implements OnInit {
 
     if (attempts.length <= 1) {
       const score = this.selectedResult.puntajeTotal;
-      const level = this.selectedResult.nivelDepresion;
+      const level = this.getResultLevel(this.selectedResult);
       if (this.storedDetectedRules.length === 0) {
         return `${patientName}: puntaje ${score} (${level}). Triangulación: no se detectaron patrones relevantes.`;
       }
@@ -450,7 +450,7 @@ export class ReportesComponent implements OnInit {
     }
 
     // Comparativo: múltiples intentos
-    const scoreList = attempts.map((a, i) => `Intento ${i + 1}: ${a.puntajeTotal} (${a.nivelDepresion})`).join(' → ');
+    const scoreList = attempts.map((a, i) => `Intento ${i + 1}: ${a.puntajeTotal} (${this.getResultLevel(a)})`).join(' → ');
     const first = attempts[0];
     const last = attempts[attempts.length - 1];
     const delta = last.puntajeTotal - first.puntajeTotal;
@@ -584,7 +584,7 @@ export class ReportesComponent implements OnInit {
 
     if (attempts.length <= 1) {
       const score = this.selectedResult.puntajeTotal;
-      const level = (this.selectedResult.nivelDepresion || '').toLowerCase();
+      const level = this.getResultLevel(this.selectedResult).toLowerCase();
       const detectedRules = this.storedDetectedRules.map((d) => d.regla.toLowerCase());
       const triangulationText = detectedRules.length > 0
         ? `En la triangulación se observan indicadores compatibles con ${detectedRules.join(', ')}.`
@@ -599,8 +599,8 @@ export class ReportesComponent implements OnInit {
     const first = attempts[0];
     const last = attempts[attempts.length - 1];
     const delta = last.puntajeTotal - first.puntajeTotal;
-    const levelNow = (last.nivelDepresion || '').toLowerCase();
-    const levelBefore = (first.nivelDepresion || '').toLowerCase();
+    const levelNow = this.getResultLevel(last).toLowerCase();
+    const levelBefore = this.getResultLevel(first).toLowerCase();
 
     let evolucion: string;
     if (delta < 0) {
@@ -742,7 +742,7 @@ export class ReportesComponent implements OnInit {
     if (r.testType === 'IHL') { testLabel = 'IHL'; }
 
     const analysis: PatientAnalysis = {
-      estadoActual: `${name} obtuvo ${r.puntajeTotal} puntos en el ${testLabel}, correspondiente a ${r.nivelDepresion.toLowerCase()}.`,
+      estadoActual: `${name} obtuvo ${r.puntajeTotal} puntos en el ${testLabel}, correspondiente a ${this.getResultLevel(r).toLowerCase()}.`,
       evolucionBdi: null,
       evolucionBai: null,
       itemsMejora: [],
@@ -858,8 +858,8 @@ export class ReportesComponent implements OnInit {
     if (!bdi && !bai) { return ''; }
 
     const scoreParts: string[] = [];
-    if (bdi) { scoreParts.push(`Depresión (BDI-II): ${bdi.puntajeTotal} pts. (${bdi.nivelDepresion})`); }
-    if (bai) { scoreParts.push(`Ansiedad (BAI): ${bai.puntajeTotal} pts. (${bai.nivelDepresion})`); }
+    if (bdi) { scoreParts.push(`Depresión (BDI-II): ${bdi.puntajeTotal} pts. (${this.getResultLevel(bdi)})`); }
+    if (bai) { scoreParts.push(`Ansiedad (BAI): ${bai.puntajeTotal} pts. (${this.getResultLevel(bai)})`); }
     const scoresText = scoreParts.join(' — ');
 
     const evolutionParts: string[] = [];
@@ -925,9 +925,9 @@ export class ReportesComponent implements OnInit {
 
     // Estado actual - incluir todos los tests disponibles
     const estadoParts: string[] = [];
-    if (bdi) { estadoParts.push(`${bdi.nivelDepresion.toLowerCase()} según el BDI-II (${bdi.puntajeTotal} pts.)`); }
-    if (bai) { estadoParts.push(`${bai.nivelDepresion.toLowerCase()} según el BAI (${bai.puntajeTotal} pts.)`); }
-    if (ihl) { estadoParts.push(`${ihl.nivelDepresion.toLowerCase()} según el IHL (${ihl.puntajeTotal} pts.)`); }
+    if (bdi) { estadoParts.push(`${this.getResultLevel(bdi).toLowerCase()} según el BDI-II (${bdi.puntajeTotal} pts.)`); }
+    if (bai) { estadoParts.push(`${this.getResultLevel(bai).toLowerCase()} según el BAI (${bai.puntajeTotal} pts.)`); }
+    if (ihl) { estadoParts.push(`${this.getResultLevel(ihl).toLowerCase()} según el IHL (${ihl.puntajeTotal} pts.)`); }
 
     if (estadoParts.length > 0) {
       analysis.estadoActual = `${patientName} presenta ${estadoParts.join(' y ')}.`;
@@ -938,7 +938,7 @@ export class ReportesComponent implements OnInit {
       const firstBdi = bdiAll[0];
       const lastBdi = bdiAll[bdiAll.length - 1];
       const deltaBdi = lastBdi.puntajeTotal - firstBdi.puntajeTotal;
-      const trajectoryBdi = bdiAll.map((r) => `${r.puntajeTotal} pts. (${r.nivelDepresion.toLowerCase()})`).join(' → ');
+      const trajectoryBdi = bdiAll.map((r) => `${r.puntajeTotal} pts. (${this.getResultLevel(r).toLowerCase()})`).join(' → ');
       const allDeltasBdi = bdiAll.slice(1).map((r, i) => r.puntajeTotal - bdiAll[i].puntajeTotal);
       const hasFluctuationBdi = allDeltasBdi.some((d) => d > 0) && allDeltasBdi.some((d) => d < 0);
       if (hasFluctuationBdi) {
@@ -946,7 +946,7 @@ export class ReportesComponent implements OnInit {
       } else if (deltaBdi < 0) {
         analysis.evolucionBdi = `Evolución positiva: ${trajectoryBdi}.`;
       } else if (deltaBdi === 0) {
-        analysis.evolucionBdi = `Estable en ${lastBdi.nivelDepresion.toLowerCase()} a lo largo de los ${bdiAll.length} registros.`;
+        analysis.evolucionBdi = `Estable en ${this.getResultLevel(lastBdi).toLowerCase()} a lo largo de los ${bdiAll.length} registros.`;
       } else {
         analysis.evolucionBdi = `Aumento en la sintomatología: ${trajectoryBdi}.`;
       }
@@ -957,7 +957,7 @@ export class ReportesComponent implements OnInit {
       const firstBai = baiAll[0];
       const lastBai = baiAll[baiAll.length - 1];
       const deltaBai = lastBai.puntajeTotal - firstBai.puntajeTotal;
-      const trajectoryBai = baiAll.map((r) => `${r.puntajeTotal} pts. (${r.nivelDepresion.toLowerCase()})`).join(' → ');
+      const trajectoryBai = baiAll.map((r) => `${r.puntajeTotal} pts. (${this.getResultLevel(r).toLowerCase()})`).join(' → ');
       const allDeltasBai = baiAll.slice(1).map((r, i) => r.puntajeTotal - baiAll[i].puntajeTotal);
       const hasFluctuationBai = allDeltasBai.some((d) => d > 0) && allDeltasBai.some((d) => d < 0);
       if (hasFluctuationBai) {
@@ -965,7 +965,7 @@ export class ReportesComponent implements OnInit {
       } else if (deltaBai < 0) {
         analysis.evolucionBai = `Evolución positiva: ${trajectoryBai}.`;
       } else if (deltaBai === 0) {
-        analysis.evolucionBai = `Estable en ${lastBai.nivelDepresion.toLowerCase()} a lo largo de los ${baiAll.length} registros.`;
+        analysis.evolucionBai = `Estable en ${this.getResultLevel(lastBai).toLowerCase()} a lo largo de los ${baiAll.length} registros.`;
       } else {
         analysis.evolucionBai = `Aumento en la sintomatología: ${trajectoryBai}.`;
       }
