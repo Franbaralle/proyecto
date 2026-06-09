@@ -4,6 +4,23 @@
   padding: 1.25rem;
 }
 
+.back-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #2f4f4f;
+  border-radius: 6px;
+  background: transparent;
+  color: #2f4f4f;
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-bottom: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: #2f4f4f;
+  color: #fff;
+}
+
 .ihl-intro p {
   margin: 0.75rem 0;
   line-height: 1.5;
@@ -68,22 +85,23 @@
 
 .submit-section {
   margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  align-items: flex-end;
 }
 
-.submit-btn,
-.btn-volver {
-  display: inline-block;
-  margin-top: 1rem;
-  padding: 0.75rem 1rem;
-  background: #1e73be;
-  color: white;
-  border: none;
-  border-radius: 0.35rem;
+.submit-btn {
+  padding: 0.55rem 1.1rem;
+  border: 1px solid #2f4f4f;
+  border-radius: 6px;
+  background: #2f4f4f;
+  color: #fff;
   cursor: pointer;
 }
 
 .submit-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 

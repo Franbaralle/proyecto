@@ -54,6 +54,24 @@ export class SeleccionTestComponent implements OnInit {
       yaCompletado: false,
       pendienteLocal: false,
       cargando: true
+    },
+    {
+      id: 'MBI',
+      nombre: 'Inventario de Burnout de Maslach (MBI)',
+      descripcion: 'Evalúa el síndrome de burnout o desgaste laboral en profesionales. Consta de 22 ítems.',
+      ruta: '/mbi',
+      yaCompletado: false,
+      pendienteLocal: false,
+      cargando: true
+    },
+    {
+      id: 'COPSOQ-ARG',
+      nombre: 'COPSOQ-ARG - Riesgos Psicosociales',
+      descripcion: 'Evalúa factores de riesgo psicosocial en el trabajo. Versión breve con 30 preguntas.',
+      ruta: '/copsoq',
+      yaCompletado: false,
+      pendienteLocal: false,
+      cargando: true
     }
   ];
 

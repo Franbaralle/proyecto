@@ -14,7 +14,7 @@ type IhlPartBNumericKeys = Exclude<keyof IhlPartBAnswers, 'q5Reason' | 'q6Explan
   styleUrls: ['./ihl.component.css']
 })
 export class IhlComponent implements OnInit {
-  readonly title = 'INVENTARIO DE HOSTIGAMIENTO LABORAL (IHL) - PARTES A y B';
+  readonly title = 'INVENTARIO DE HOSTIGAMIENTO LABORAL (IHL) - PARTES A y B - ESTO ES UNA PRUEBA NO TIENE VALIDEZ CLÍNICA';
 
   readonly frequencyOptions = [
     'Todos los días',
@@ -186,6 +186,10 @@ export class IhlComponent implements OnInit {
     this.submitError = '';
   }
 
+  volverATests(): void {
+    this.router.navigate(['/seleccion-test']);
+  }
+
   selectPartBAnswer(question: IhlPartBNumericKeys, value: number): void {
     this.ihlData.partB[question] = value;
     if (question === 'q2' && value === 1) {
@@ -245,6 +249,12 @@ export class IhlComponent implements OnInit {
     const puedeEnviar = this.canSubmit;
     if (!puedeEnviar) {
       this.submitError = 'Debe completar todas las filas de frecuencia y malestar antes de continuar.';
+      return;
+    }
+
+    // Mostrar popup de confirmación
+    const confirmacion = confirm('Te recuerdo que esta es una version de prueba y no tiene validez clínica');
+    if (!confirmacion) {
       return;
     }
 

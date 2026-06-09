@@ -1,0 +1,189 @@
+<div class="container">
+  <div class="test-header">
+    <h2>MBI - Inventario de Burnout de Maslach</h2>
+    <p class="subtitle">Evaluación de desgaste laboral en profesionales</p>
+  </div>
+
+  <!-- Datos del paciente -->
+  <div class="section">
+    <h3>Datos del Evaluado</h3>
+    <div class="form-group">
+      <label>Nombre completo: *</label>
+      <input 
+        type="text" 
+        [(ngModel)]="pacienteNombre" 
+        placeholder="Ingrese nombre del evaluado"
+        class="form-control">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Edad:</label>
+        <input 
+          type="number" 
+          [(ngModel)]="pacienteEdad" 
+          placeholder="Edad"
+          class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>Área / Puesto:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="pacienteArea" 
+          placeholder="Área o puesto de trabajo"
+          class="form-control">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Observaciones:</label>
+      <textarea 
+        [(ngModel)]="pacienteObservaciones" 
+        placeholder="Observaciones adicionales"
+        rows="2"
+        class="form-control"></textarea>
+    </div>
+  </div>
+
+  <!-- Datos del profesional -->
+  <div class="section" *ngIf="!patientAuth.isLoggedIn">
+    <h3>Datos del Profesional</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nombre del profesional: *</label>
+        <input 
+          type="text" 
+          [(ngModel)]="profesionalNombre" 
+          placeholder="Nombre del profesional"
+          class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>Matrícula:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="profesionalMatricula" 
+          placeholder="Número de matrícula"
+          class="form-control">
+      </div>
+    </div>
+  </div>
+
+  <!-- Cuestionario -->
+  <div class="section">
+    <h3>Cuestionario MBI</h3>
+    <p class="instructions">
+      Indique con qué frecuencia experimenta cada una de las siguientes situaciones en su trabajo.
+      Utilice la escala de 0 (Nunca) a 6 (Todos los días).
+    </p>
+
+    <div class="question-block" *ngFor="let pregunta of preguntas; let i = index">
+      <div class="question-header">
+        <span class="question-number">{{ pregunta.numero }}</span>
+        <span class="question-text">{{ pregunta.texto }}</span>
+        <span class="badge" [class]="'badge-' + pregunta.subescala.toLowerCase()">{{ pregunta.subescala }}</span>
+      </div>
+
+      <div class="options-grid">
+        <button 
+          *ngFor="let opcion of opciones"
+          class="option-button"
+          [class.selected]="respuestas[i] === opcion.valor"
+          (click)="selectOption(i, opcion.valor)">
+          <div class="option-value">{{ opcion.valor }}</div>
+          <div class="option-label">{{ opcion.etiqueta }}</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón calcular -->
+  <div class="action-buttons">
+    <button 
+      class="btn btn-primary btn-large"
+      [disabled]="!canCalculate"
+      (click)="calcularResultado()">
+      <span *ngIf="!canCalculate">Complete todos los datos para calcular</span>
+      <span *ngIf="canCalculate">Calcular Resultado</span>
+    </button>
+  </div>
+
+  <!-- Resultados -->
+  <div class="section results-section" *ngIf="mostrarResultados && puntajes">
+    <h3>Resultados del MBI</h3>
+
+    <div class="results-summary">
+      <div class="result-card">
+        <h4>Agotamiento Emocional (AE)</h4>
+        <div class="score">{{ puntajes.ae }} / 54</div>
+        <span class="badge" [class]="getBadgeClass(puntajes.aeCategoria)">{{ puntajes.aeCategoria }}</span>
+      </div>
+
+      <div class="result-card">
+        <h4>Despersonalización (D)</h4>
+        <div class="score">{{ puntajes.d }} / 30</div>
+        <span class="badge" [class]="getBadgeClass(puntajes.dCategoria)">{{ puntajes.dCategoria }}</span>
+      </div>
+
+      <div class="result-card">
+        <h4>Realización Personal (RP)</h4>
+        <div class="score">{{ puntajes.rp }} / 48</div>
+        <span class="badge" [class]="getBadgeClass(puntajes.rpCategoria)">{{ puntajes.rpCategoria }}</span>
+      </div>
+    </div>
+
+    <div class="global-result">
+      <h4>Resultado Global</h4>
+      <p class="result-text" [class.warning]="puntajes.indiciosBurnout >= 1" [class.danger]="puntajes.indiciosBurnout === 3">
+        {{ puntajes.resultadoGlobal }}
+      </p>
+      <div *ngIf="puntajes.indiciosBurnout > 0" class="burnout-indicators">
+        <strong>Indicios de burnout detectados: {{ puntajes.indiciosBurnout }} / 3</strong>
+        <ul>
+          <li *ngIf="puntajes.aeAlto">✓ Agotamiento Emocional Alto</li>
+          <li *ngIf="puntajes.dAlto">✓ Despersonalización Alta</li>
+          <li *ngIf="puntajes.rpBajo">✓ Realización Personal Baja</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="interpretation">
+      <h4>Interpretación Clínica</h4>
+      <pre class="interpretation-text">{{ interpretacion }}</pre>
+    </div>
+
+    <!-- Botón guardar -->
+    <div class="action-buttons">
+      <button 
+        class="btn btn-success btn-large"
+        [disabled]="isSubmitting"
+        (click)="guardarResultado()">
+        <span *ngIf="!isSubmitting">Guardar Resultado en Firebase</span>
+        <span *ngIf="isSubmitting">Guardando...</span>
+      </button>
+
+      <button 
+        class="btn btn-secondary"
+        (click)="limpiarFormulario()">
+        Limpiar y Empezar Nuevo Test
+      </button>
+    </div>
+  </div>
+
+  <!-- Mensajes -->
+  <div class="message success-message" *ngIf="submitMessage">
+    {{ submitMessage }}
+  </div>
+
+  <div class="message error-message" *ngIf="submitError">
+    {{ submitError }}
+  </div>
+
+  <!-- Botón volver -->
+  <div class="action-buttons">
+    <button class="btn btn-secondary" (click)="volverATests()">
+      Volver a Selección de Tests
+    </button>
+  </div>
+</div>
