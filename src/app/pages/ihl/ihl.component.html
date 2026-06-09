@@ -1,4 +1,6 @@
 <section class="ihl-container">
+  <button type="button" class="back-btn" (click)="volverATests()">← Volver a la lista de tests</button>
+  
   <h2>{{ title }}</h2>
 
   <div class="ihl-intro">
@@ -177,8 +179,4 @@
     <p class="submit-success" *ngIf="submitMessage">{{ submitMessage }}</p>
     <p class="submit-error" *ngIf="submitError">{{ submitError }}</p>
   </div>
-
-  <button type="button" class="btn-volver" (click)="volverSeleccion()">
-    Volver a selección de tests
-  </button>
 </section>

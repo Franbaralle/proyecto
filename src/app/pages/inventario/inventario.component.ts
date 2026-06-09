@@ -269,6 +269,10 @@ export class InventarioComponent implements OnInit {
     this.submitError = '';
   }
 
+  volverATests(): void {
+    this.router.navigate(['/seleccion-test']);
+  }
+
   get canSubmit(): boolean {
     if (this.patientAuth.isLoggedIn) {
       // Pacientes Firebase: solo requieren datos de paciente + cuestionario completo
@@ -291,6 +295,12 @@ export class InventarioComponent implements OnInit {
 
     if (!puedeEnviar) {
       this.submitError = 'Debe completar todos los datos del paciente y todas las preguntas antes de guardar.';
+      return;
+    }
+
+    // Mostrar popup de confirmación
+    const confirmacion = confirm('Te recuerdo que esta es una version de prueba y no tiene validez clínica');
+    if (!confirmacion) {
       return;
     }
 

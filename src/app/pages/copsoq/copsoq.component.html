@@ -1,0 +1,221 @@
+<div class="container">
+  <div class="test-header">
+    <h2>COPSOQ-ARG</h2>
+    <p class="subtitle">Cuestionario para la Evaluación de Factores Psicosociales en el Trabajo</p>
+    <p class="version">Versión Breve 2021</p>
+  </div>
+
+  <!-- Datos del paciente -->
+  <div class="section">
+    <h3>Datos del Trabajador/a</h3>
+    <div class="form-group">
+      <label>Nombre completo: *</label>
+      <input 
+        type="text" 
+        [(ngModel)]="pacienteNombre" 
+        placeholder="Ingrese nombre completo"
+        class="form-control">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Edad:</label>
+        <input 
+          type="number" 
+          [(ngModel)]="pacienteEdad" 
+          placeholder="Edad"
+          class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>Área / Sector:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="pacienteArea" 
+          placeholder="Área o sector de trabajo"
+          class="form-control">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Antigüedad en la institución:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="pacienteAntiguedad" 
+          placeholder="Ej: 3 años, 6 meses"
+          class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>Observaciones:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="pacienteObservaciones" 
+          placeholder="Observaciones adicionales"
+          class="form-control">
+      </div>
+    </div>
+  </div>
+
+  <!-- Datos del profesional -->
+  <div class="section" *ngIf="!patientAuth.isLoggedIn">
+    <h3>Datos del Profesional</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nombre del profesional: *</label>
+        <input 
+          type="text" 
+          [(ngModel)]="profesionalNombre" 
+          placeholder="Nombre del profesional"
+          class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label>Matrícula:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="profesionalMatricula" 
+          placeholder="Número de matrícula"
+          class="form-control">
+      </div>
+    </div>
+  </div>
+
+  <!-- Cuestionario por dimensiones -->
+  <div class="section">
+    <h3>Cuestionario</h3>
+    <p class="instructions">
+      Responda con qué <strong>frecuencia</strong> experimenta cada situación en su trabajo actual.
+      Las respuestas van desde <strong>Nunca</strong> hasta <strong>Siempre</strong>.
+    </p>
+
+    <div *ngFor="let dimension of dimensiones" [class]="'dimension-section ' + getDimensionClass(dimension)">
+      <div class="dimension-header">
+        <span class="dimension-icon">{{ getDimensionIcon(dimension) }}</span>
+        <h4>{{ dimension }}</h4>
+      </div>
+
+      <div class="question-block" *ngFor="let pregunta of preguntasPorDimension[dimension]">
+        <div class="question-text">
+          <span class="question-number">{{ pregunta.numero }}</span>
+          {{ pregunta.texto }}
+        </div>
+
+        <div class="options-horizontal">
+          <button 
+            *ngFor="let opcion of opciones"
+            class="option-button-horizontal"
+            [class.selected]="respuestas[pregunta.numero - 1] === opcion.valor"
+            (click)="selectOption(pregunta.numero - 1, opcion.valor)"
+            [title]="opcion.etiqueta">
+            {{ opcion.etiqueta }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón calcular -->
+  <div class="action-buttons">
+    <button 
+      class="btn btn-primary btn-large"
+      [disabled]="!canCalculate"
+      (click)="calcularResultado()">
+      <span *ngIf="!canCalculate">Complete todos los datos para calcular</span>
+      <span *ngIf="canCalculate">Calcular Resultado</span>
+    </button>
+  </div>
+
+  <!-- Resultados -->
+  <div class="section results-section" *ngIf="mostrarResultados && resultados">
+    <h3>Resultados COPSOQ-ARG</h3>
+    <p class="results-intro">Sistema de evaluación por semáforo: Verde (favorable) | Amarillo (moderado) | Rojo (requiere intervención)</p>
+
+    <div class="results-grid">
+      <div class="result-card" *ngFor="let dimension of dimensiones" [class]="getBadgeClass(resultados.dimensiones[dimension]?.color)">
+        <div class="result-header">
+          <span class="dimension-icon-large">{{ getDimensionIcon(dimension) }}</span>
+          <h4>{{ dimension }}</h4>
+        </div>
+        
+        <div class="result-score">
+          <div class="score-value">{{ resultados.dimensiones[dimension]?.indice }}</div>
+          <div class="score-label">puntos</div>
+        </div>
+
+        <div class="result-category">
+          <span class="badge-large" [class]="getBadgeClass(resultados.dimensiones[dimension]?.color)">
+            {{ resultados.dimensiones[dimension]?.categoria }}
+          </span>
+        </div>
+
+        <div class="terciles-info">
+          <small>
+            {{ copsoqData.getTerciles(dimension).verde }} | 
+            {{ copsoqData.getTerciles(dimension).amarillo }} | 
+            {{ copsoqData.getTerciles(dimension).rojo }}
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen global -->
+    <div class="global-result">
+      <h4>Resumen Global</h4>
+      <div class="alert" [class.alert-success]="resultados.riesgosAltos.length === 0" 
+                         [class.alert-warning]="resultados.riesgosAltos.length > 0 && resultados.riesgosAltos.length <= 3"
+                         [class.alert-danger]="resultados.riesgosAltos.length > 3">
+        <pre class="resumen-text">{{ resultados.resumen }}</pre>
+      </div>
+
+      <div *ngIf="resultados.riesgosAltos.length > 0" class="risk-areas">
+        <h5>⚠ Áreas que requieren intervención prioritaria:</h5>
+        <ul>
+          <li *ngFor="let area of resultados.riesgosAltos">
+            <strong>{{ area }}</strong> - {{ resultados.dimensiones[area].indice }} puntos
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Interpretación -->
+    <div class="interpretation">
+      <h4>Interpretación Clínica</h4>
+      <pre class="interpretation-text">{{ interpretacion }}</pre>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="action-buttons">
+      <button 
+        class="btn btn-success btn-large"
+        [disabled]="isSubmitting"
+        (click)="guardarResultado()">
+        <span *ngIf="!isSubmitting">Guardar Resultado en Firebase</span>
+        <span *ngIf="isSubmitting">Guardando...</span>
+      </button>
+
+      <button 
+        class="btn btn-secondary"
+        (click)="limpiarFormulario()">
+        Limpiar y Empezar Nuevo Test
+      </button>
+    </div>
+  </div>
+
+  <!-- Mensajes -->
+  <div class="message success-message" *ngIf="submitMessage">
+    {{ submitMessage }}
+  </div>
+
+  <div class="message error-message" *ngIf="submitError">
+    {{ submitError }}
+  </div>
+
+  <!-- Botón volver -->
+  <div class="action-buttons">
+    <button class="btn btn-secondary" (click)="volverATests()">
+      Volver a Selección de Tests
+    </button>
+  </div>
+</div>
